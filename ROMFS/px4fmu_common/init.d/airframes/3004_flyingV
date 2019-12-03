@@ -7,26 +7,30 @@
 #
 # @output MAIN1 motor 1
 # @output MAIN2 motor 2
-# @output MAIN3 rudder 1
-# @output MAIN4 rudder 2
-# @output MAIN5 steering servo 
-# @output MAIN6 elevon left 1
-# @output MAIN7 elevon left 2 
-# @output MAIN8 elevon left 3
+# @output MAIN3 elevator R
+# @output MAIN4 elevon R 
+# @output MAIN5 aileron R 
+# @output MAIN6 rudder R 
+# @output MAIN7 empty
+# @output MAIN8 empty
 #
 # @output AUX1 brakes
 # @output AUX2 retraction
 # @output AUX3 Airdata trigger
-# @output AUX4 elevon right 1
-# @output AUX5 elevon right 2
-# @output AUX6 elevon right 3
+# @output AUX4 steering servo 
+# @output AUX5 elevator L 
+# @output AUX6 elevon L 
+# @output AUX7 aileron L 
+# @output AUX8 rudder L 
 
 set VEHICLE_TYPE fw
 
 if [ $AUTOCNF = yes ]
 then
-	
-	# Default parameters for fixed wing UAVs.
+
+	# ----------------------------------------------------
+	#		 Default parameters for fixed wing UAVs.
+	# ----------------------------------------------------
 	param set COM_POS_FS_DELAY 5
 	param set COM_POS_FS_EPH 25
 	param set COM_POS_FS_EPV 50
@@ -59,20 +63,61 @@ then
 	param set MIS_LTRMIN_ALT 25
 	param set MIS_TAKEOFF_ALT 25
 
-
 	# FW takeoff acceleration can easily exceed ublox GPS 2G default.
 	param set GPS_UBX_DYNMODEL 8
 
-	# USER PARAMETERS
-	param set PWM_AUX_RATE 50
-	param set PWM_RATE 50
-	param set BAT_N_CELLS 6
-	param set BAT_A_PER_V 65.02386
-	param set BAT_V_DIV 19.12569
+	# ----------------------------------------------------
+	#		 			USER PARAMETERS
+	# ----------------------------------------------------
+	
+	# MAP CONTROL CHANNELS 
+	param set RC_MAP_THROTTLE 1
+	param set RC_MAP_ROLL 2
+	param set RC_MAP_PITCH 3
+	param set RC_MAP_YAW 4
 
-	# MAP AUXILIARY PARAMETERS 
-	param set RC_MAP_AUX1 8
-	param set RC_MAP_AUX2 7
+	# MAP AUXILIARY CHANNELS 
+	param set RC_MAP_FLTMODE 6 	# Flight mode switch
+	param set RC_MAP_ARM_SW 7  	# Arming switch
+	param set RC_MAP_AUX1 9   	# Wheel brakes dial
+	param set RC_MAP_AUX2 5 	# Gear retraction switch
+	param set RC_MAP_AUX3 8 	# Trigger switch to Arduino/Aeroprobe
+	param set RC_MAP_FLAPS 10	# Airbrakes dial (mapped to flaps channel)
+
+	# DISABLE UNUSED CHANNELS
+    param set RC_MAP_MODE_SW 0	# do not use 
+	param set RC_MAP_PARAM1 0	# Do we need to set any parameter with a dial? ()
+	param set RC_MAP_PARAM2 0	# Do we need to set any parameter with a dial? 
+
+	# FLIGHT MODES
+	param set COM_FLTMODE1 0 	# Manual 
+	param set COM_FLTMODE4 8 	# Stabilized
+	param set COM_FLTMODE6 5 	# Return 
+
+	# PWM OUTPUTS
+	param set PWM_AUX_RATE 50 	# CHECK! a guy says that 400 Hz is the standard bc 8x50 Hz = 400 --> control 8 ports in parallel at 50 Hz each ¿?
+	param set PWM_RATE 50 		# CHECK! a guy says that 400 Hz is the standard bc 8x50 Hz = 400 --> control 8 ports in parallel at 50 Hz each ¿?
+	# param set PWM_MAX 2100 	  # Default = 2000 us 
+	# param set PWM_MIN 900		  # Default = 1000 us 
+	# param set PWM_AUX_MAX 2100  # Default = 2000 us 
+	# param set PWM_AUX_MIN 900   # Default = 1000 us 
+
+
+	# BATTERY ESTIMATOR
+	param set BAT_N_CELLS 3 		# 3S (11.1 V)
+	param set BAT_A_PER_V 65.02386	# Amps-per-volt (Mauch sensor)
+	param set BAT_V_DIV 19.12569	# Voltage divider (Mauch sensor)
+	param set BAT_V_CHARGED 4.2 	# Full voltage per cell 
+	param set BAT_V_EMPTY 3.2 		# Empty voltage per cell (conservative, 3.0 V real value)
+
+	# CALIBRATION PARAMETERS (TO BE REMOVED/CHANGED)
+	# param set SYS_HAS_MAG 0
+	# param set CAL_MAG0_EN 0
+	# param set CAL_MAG1_EN 0
+	# param set COM_ARM_MAG 0.5
+	# param set CBRK_GPSFAIL 240024
+	# param set CBRK_AIRSPD_CHK 162128
+	# param set CBRK_BUZZER 782097
 
 fi
 
@@ -84,4 +129,4 @@ set MIXER_AUX flyingV
 
 # Set PWM channels
 set PWM_OUT 12345678
-set PWM_AUX_OUT 123456
+set PWM_AUX_OUT 12345678
