@@ -31,12 +31,13 @@ then
 	# ----------------------------------------------------
 	#		 Default parameters for fixed wing UAVs.
 	# ----------------------------------------------------
-	param set COM_POS_FS_DELAY 5
+	param set COM_POS_FS_DELAY 5 	# Time grom GPS loss until failsafe is enabled
 	param set COM_POS_FS_EPH 25
 	param set COM_POS_FS_EPV 50
 	param set COM_POS_FS_GAIN 0
 	param set COM_POS_FS_PROB 1
 	param set COM_VEL_FS_EVH 5
+	param set COM_POSCTL_NAVL 0	 	# RC control after failsafe (1 = no RC control)
 
 	# Kalman filter tuning gains
 	param set EKF2_ARSP_THR 8
@@ -67,6 +68,79 @@ then
 	param set GPS_UBX_DYNMODEL 8
 
 	# ----------------------------------------------------
+	#		 			PWM SETTINGS
+	# ----------------------------------------------------
+	# Limits
+	#param set PWM_MAX 1800 	    # Default = 2000 us 
+	#param set PWM_MIN 1200		# Default = 1000 us 
+	#param set PWM_AUX_MAX 1800  # Default = 2000 us 
+	#param set PWM_AUX_MIN 1200  # Default = 1000 us 
+
+	# Individual limits
+	param set PWM_MAIN_MIN1 900  # Engine 1
+	param set PWM_MAIN_MIN2 900  # Engine 2
+	param set PWM_MAIN_MIN3 1270  # Elevator R
+	param set PWM_MAIN_MIN4 1350  # Mid R
+	param set PWM_MAIN_MIN5 1250  # Aileron R
+	param set PWM_MAIN_MIN6 1000  # Rudder R
+
+	param set PWM_AUX_MIN1 1000  # Brakes
+	param set PWM_AUX_MIN2 1000  # Retraction
+	param set PWM_AUX_MIN3 1000  # Trigger
+	param set PWM_AUX_MIN4 1000  # Steering servo
+	param set PWM_AUX_MIN5 1270  # Elevator L
+	param set PWM_AUX_MIN6 1350  # Mid L 
+	param set PWM_AUX_MIN7 1250  # Aileron L 
+	param set PWM_AUX_MIN8 1000  # Rudder L 
+
+  	param set PWM_MAIN_MAX1 2100  # Engine 1
+	param set PWM_MAIN_MAX2 2100  # Engine 2
+	param set PWM_MAIN_MAX3 1850  # Elevator R
+	param set PWM_MAIN_MAX4 1700  # Mid R
+	param set PWM_MAIN_MAX5 1750  # Aileron R
+	param set PWM_MAIN_MAX6 2000  # Rudder R
+
+  	param set PWM_AUX_MAX1 2000  # Brakes
+	param set PWM_AUX_MAX2 2000  # Retraction
+	param set PWM_AUX_MAX3 2000  # Trigger
+	param set PWM_AUX_MAX4 2000  # Steering servo
+	param set PWM_AUX_MAX5 1850  # Elevator L 
+	param set PWM_AUX_MAX6 1700  # Mid L
+	param set PWM_AUX_MAX7 1750  # Aileron L
+	param set PWM_AUX_MAX8 2000  # Rudder L
+
+	# Disarmed PWM outputs
+	param set PWM_DISARMED 1500
+	param set PWM_MAIN_DIS1 900	 	# Engine 1
+	param set PWM_MAIN_DIS2 900  	# Engine 2
+
+	param set PWM_AUX_DISARMED 1500
+	# param set PWM_AUX_DIS1 900    # Brakes
+	# param set PWM_AUX_DIS2 2000 	# Retraction (Gear down)
+	# param set PWM_AUX_DIS3 900    # Trigger
+
+	# Failsafe PWM outputs
+	param set PWM_MAIN_FAIL1 900   # ESC: off
+	param set PWM_MAIN_FAIL2 900   # ESC: off
+	param set PWM_MAIN_FAIL3 1500  # Servo: centered
+	param set PWM_MAIN_FAIL4 1500  # Servo: centered
+	param set PWM_MAIN_FAIL5 1500  # Servo: centered
+	param set PWM_MAIN_FAIL6 1500  # Servo: centered
+
+	param set PWM_AUX_FAIL1 900   # Brakes: no brakes
+	param set PWM_AUX_FAIL2 2000  # Retraction: gear down
+	param set PWM_AUX_FAIL3 900   # Trigger: off (gnd comms, tells us something happened)
+	param set PWM_AUX_FAIL4 1465  # Steering: centered
+	param set PWM_AUX_FAIL5 1500  # Servo: centered
+	param set PWM_AUX_FAIL6 1500  # Servo: centered
+	param set PWM_AUX_FAIL7 1500  # Servo: centered
+	param set PWM_AUX_FAIL8 1500  # Servo: centered
+
+	# PWM rate
+	#param set PWM_AUX_RATE 50 	# CHECK! a guy says that 400 Hz is the standard bc 8x50 Hz = 400 --> control 8 ports in parallel at 50 Hz each ?
+	#param set PWM_RATE 50 		# CHECK! a guy says that 400 Hz is the standard bc 8x50 Hz = 400 --> control 8 ports in parallel at 50 Hz each ?
+
+	# ----------------------------------------------------
 	#		 			USER PARAMETERS
 	# ----------------------------------------------------
 	
@@ -94,21 +168,13 @@ then
 	param set COM_FLTMODE4 8 	# Stabilized
 	param set COM_FLTMODE6 5 	# Return 
 
-	# PWM OUTPUTS
-	param set PWM_AUX_RATE 50 	# CHECK! a guy says that 400 Hz is the standard bc 8x50 Hz = 400 --> control 8 ports in parallel at 50 Hz each ¿?
-	param set PWM_RATE 50 		# CHECK! a guy says that 400 Hz is the standard bc 8x50 Hz = 400 --> control 8 ports in parallel at 50 Hz each ¿?
-	# param set PWM_MAX 2100 	  # Default = 2000 us 
-	# param set PWM_MIN 900		  # Default = 1000 us 
-	# param set PWM_AUX_MAX 2100  # Default = 2000 us 
-	# param set PWM_AUX_MIN 900   # Default = 1000 us 
-
-
 	# BATTERY ESTIMATOR
 	param set BAT_N_CELLS 3 		# 3S (11.1 V)
 	param set BAT_A_PER_V 65.02386	# Amps-per-volt (Mauch sensor)
 	param set BAT_V_DIV 19.12569	# Voltage divider (Mauch sensor)
 	param set BAT_V_CHARGED 4.2 	# Full voltage per cell 
 	param set BAT_V_EMPTY 3.2 		# Empty voltage per cell (conservative, 3.0 V real value)
+
 
 	# CALIBRATION PARAMETERS (TO BE REMOVED/CHANGED)
 	# param set SYS_HAS_MAG 0
