@@ -114,7 +114,9 @@ px4_add_board(
 		tune_control
 		usb_connected
 		ver
-
+		arduino # Added by Alberto Ruiz Garcia
+		maneuver # Added by Alberto Ruiz Garcia	
+		
 	EXAMPLES
 		bottle_drop # OBC challenge
 		fixedwing_control # Tutorial code from https://px4.io/dev/example_fixedwing_control
