@@ -129,5 +129,6 @@ px4_add_board(
 		rover_steering_control # Rover example app
 		segway
 		uuv_example_app
+		maneuver_control # Added by Alberto Ruiz Garcia
 
 	)
