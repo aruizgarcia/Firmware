@@ -1,40 +1,15 @@
 /****************************************************************************
  *
- *   Copyright (c) 2013, 2014, 2017 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
+*
  ****************************************************************************/
 
 /**
- * @file pwm.cpp
- *
- * PWM servo output configuration and monitoring tool.
+ * @file maneuver.cpp
+ * 
+ * Programmable maneuvers for aerodynamic model identification using the test 
+ * mode for the servos.
+ * 
+ * @author Alberto Ruiz Garcia <aruizgarcia-1@tudelft.nl<
  */
 
 #include <px4_config.h>
@@ -103,9 +78,8 @@ This command is used to ...
 }
 
 /* Function prototypes */
-int pwm_arm (int ); 
-
-
+static int pwm_arm (int fd); 
+unsigned check_commanded_us(unsigned val, int min_pulse, int max_pulse); 
 
 /* MAIN PROGRAM */
 
@@ -144,7 +118,7 @@ maneuver_main(int argc, char *argv[])
 	int myoptind = 1;
 	const char *myoptarg = nullptr;
 
-	while ((ch = px4_getopt(argc, argv, "d:vec:g:m:a:r:c:d:T:", &myoptind, &myoptarg)) != EOF) {
+	while ((ch = px4_getopt(argc, argv, "a:c:t:v:e:", &myoptind, &myoptarg)) != EOF) {
 		switch (ch) {
 
 		case 'v':
@@ -180,7 +154,7 @@ maneuver_main(int argc, char *argv[])
 //				control_surface = 5;  
 			}	
 			break; 	
-		case 'T': 
+		case 't': 
 			if (px4_get_parameter_value(myoptarg, duration) != 0) {
 				PX4_ERR("CLI argument parsing for maneuver duration failed");
 				return 1;
@@ -264,7 +238,6 @@ maneuver_main(int argc, char *argv[])
 		channels1 /= 10;
 	}
 
-
 	if (myoptind >= argc) {
 		usage(nullptr);
 		return 1;
@@ -284,8 +257,8 @@ maneuver_main(int argc, char *argv[])
 
 		printf("\n");
 	}
-	
-		if (print_verbose && set_mask1 > 0) {
+
+	if (print_verbose && set_mask1 > 0) {
 		PX4_INFO("Channels (AUX): ");
 		printf("    ");
 
@@ -308,10 +281,9 @@ maneuver_main(int argc, char *argv[])
 	}
 
 	if (fd_aux < 0) {
-	PX4_ERR("can't open %s", dev1);
-	return 1;
+		PX4_ERR("can't open %s", dev1);
+		return 1;
 	}
-
 
 	/* get the number of servo channels */
 	unsigned servo_count_main;
@@ -327,7 +299,6 @@ maneuver_main(int argc, char *argv[])
 		PX4_ERR("AUX : PWM_SERVO_GET_COUNT");
 		return error_on_warn;
 	}
-
 
 	if (!strcmp(command, "doublet")) {
 
@@ -384,6 +355,8 @@ maneuver_main(int argc, char *argv[])
 		double default_duration = 10000.0;
 		double scale_ratio = maneuver_duration/default_duration; 
 		unsigned steps_timing_ms[] = {0, 1000, 4000, 7000, 10000};
+
+		// Scale the maneuver timing to match the desired duration
 		for (uint8_t idx = 0; idx < sizeof(steps_timing_ms)/sizeof(steps_timing_ms[0]); idx++ ){
 			steps_timing_ms[idx] *= scale_ratio; 
 		}
@@ -403,15 +376,13 @@ maneuver_main(int argc, char *argv[])
 		PX4_WARN("WARNING: Starting maneuver in 5 seconds. \n \t\t Press any key to abort now!.");
 		px4_sleep(5);
 
-
         if (::ioctl(fd_main, PWM_SERVO_SET_MODE, PWM_SERVO_ENTER_TEST_MODE) < 0) {
-                        PX4_ERR("Failed to Enter pwm test mode (MAIN)");
-                        goto err_out_no_test;
+            PX4_ERR("Failed to Enter pwm test mode (MAIN)");
+            goto err_out_no_test;
         }
-
-
+        
 		if (::ioctl(fd_aux, PWM_SERVO_SET_MODE, PWM_SERVO_ENTER_TEST_MODE) < 0) {
-		PX4_ERR("Failed to Enter pwm test mode (AUX)");
+			PX4_ERR("Failed to Enter pwm test mode (AUX)");
 			goto err_out_no_test;
 		}
 		
@@ -446,6 +417,7 @@ maneuver_main(int argc, char *argv[])
 			for (unsigned i = 0; i < servo_count_main; i++) {
 				if (set_mask0 & 1 << i) {					
 
+					servo_center_right = last_spos_main.values[i]; 
 				    if (servo_command > 0.0){
 				    	val = servo_center_right + (max_pulse_right - servo_center_right) * servo_command; 
 				    } else {
@@ -456,7 +428,15 @@ maneuver_main(int argc, char *argv[])
 						PX4_INFO("  -MAIN: Channel #%d -- PWM value [us] = %d",i+1,val); 
 					}
 
+					val = check_commanded_us(val, min_pulse_right, max_pulse_right); 
 					ret = px4_ioctl(fd_main, PWM_SERVO_SET(i), val);
+					if (ret != OK) {
+						PX4_ERR("MAIN: PWM_SERVO_SET(%d)", i);
+						goto err_out;
+					}
+				} else { // Write last position before starting maneuver
+					val = check_commanded_us(last_spos_main.values[i], 1000, 2000); 
+					ret = px4_ioctl(fd_main, PWM_SERVO_SET(i), val); 
 					if (ret != OK) {
 						PX4_ERR("MAIN: PWM_SERVO_SET(%d)", i);
 						goto err_out;
@@ -468,6 +448,7 @@ maneuver_main(int argc, char *argv[])
 			for (unsigned i = 0; i < servo_count_aux; i++) {
 				if (set_mask1 & 1 << i) {
 
+					servo_center_left = last_spos_aux.values[i]; 
 				    if (servo_command > 0.0){
 				    	val = servo_center_left + (max_pulse_left - servo_center_left) * servo_command; 
 				    } else {
@@ -478,7 +459,15 @@ maneuver_main(int argc, char *argv[])
 						PX4_INFO("  -AUX : Channel #%d -- PWM value [us] = %d",i+1,val); 
 					}
 
+					val = check_commanded_us(val, min_pulse_left, max_pulse_left); 
 					ret = px4_ioctl(fd_aux, PWM_SERVO_SET(i), val);
+					if (ret != OK) {
+						PX4_ERR("AUX : PWM_SERVO_SET(%d)", i);
+						goto err_out;
+					}
+				} else { // Write last position before starting maneuver
+					val = check_commanded_us(last_spos_aux.values[i], 1000, 2000); 
+					ret = px4_ioctl(fd_aux, PWM_SERVO_SET(i), val); 
 					if (ret != OK) {
 						PX4_ERR("AUX : PWM_SERVO_SET(%d)", i);
 						goto err_out;
@@ -520,10 +509,9 @@ maneuver_main(int argc, char *argv[])
 						}
 					}
 
-
 					PX4_INFO("User abort\n");
 					rv = 0;
-					return 0; 					
+					goto err_out; 					
 				}
 			}
 		
@@ -531,20 +519,20 @@ maneuver_main(int argc, char *argv[])
 	
 	PX4_INFO("<< MANEUVER EXECUTION FINISHED >>"); 
 	rv = 0; 
+	goto err_out;  
 
 	err_out:
 		if (::ioctl(fd_main, PWM_SERVO_SET_MODE, PWM_SERVO_EXIT_TEST_MODE) < 0) {
 			rv = 1;
 			PX4_ERR("Failed to Exit pwm test mode (MAIN)");
-					return rv; 
+			return rv; 
 		}
 		if (::ioctl(fd_aux, PWM_SERVO_SET_MODE, PWM_SERVO_EXIT_TEST_MODE) < 0) {
 			rv = 1;
 			PX4_ERR("Failed to Exit pwm test mode (AUX)");
-					return rv; 
-		}
+			return rv; 
+		}	
 	err_out_no_test: 
-		rv = 1; 
 		return rv; 
 	}	
 
@@ -570,7 +558,18 @@ int pwm_arm(int fd) {
             err(1, "PWM_SERVO_ARM");
     }
 
-
     return 0;
+
+}
+
+unsigned check_commanded_us(unsigned val, int min_pulse, int max_pulse) {
+
+	if (val > (uint16_t)max_pulse) {
+		return max_pulse; 
+	} else if (val < (uint16_t)min_pulse) {
+		return min_pulse; 
+	} else {
+		return val; 
+	}
 
 }
