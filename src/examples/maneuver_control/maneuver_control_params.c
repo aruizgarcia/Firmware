@@ -32,22 +32,40 @@
  ****************************************************************************/
 
 /**
- * @file gnd_att_control_params.c
- *
- * Parameters defined by the attitude control task for ground rovers
- *
- * This is a modification of the fixed wing params and it is designed for ground rovers.
- * It has been developed starting from the fw  module, simplified and improved with dedicated items.
- *
- * All the ackowledgments and credits for the fw wing app are reported in those files.
- *
- * @author Marco Zorzi <mzorzi@student.ethz.ch>
+ * @file maneuver_control_params.c
+ * 
+ * Definition of parameters to define and control the performance 
+ * of automatic preprogrammed maneuvers.
+ * 
+ *  
+ * @author Alberto Ruiz Garcia <aruizgarcia-1@tudelft.nl>
  */
 
 /*
  * Controller parameters, accessible via MAVLink
  *
  */
+
+/**
+ * Safety switch PC 
+ *
+ * [DESCRIPTION]
+ *
+ * @unit -
+ * @group maneuver control
+ */
+PARAM_DEFINE_INT32(MAN_PC_SWITCH, 0);
+
+/**
+ * Safety switch TX 
+ *
+ * [DESCRIPTION]
+ *
+ * @unit -
+ * @group maneuver control
+ */
+PARAM_DEFINE_INT32(MAN_TX_SWITCH, 0);
+
 
 /**
  * Maneuver id 
@@ -68,7 +86,7 @@ PARAM_DEFINE_INT32(MAN_ID, 0);
  * @unit ms
  * @group maneuver control
  */
-PARAM_DEFINE_INT32(MAN_START_TIME, 0);
+PARAM_DEFINE_INT32(MAN_START, 0);
 
 /**
  * Maneuver duration 
@@ -99,32 +117,6 @@ PARAM_DEFINE_FLOAT(MAN_AMPLITUDE, 0.0f);
 
 
 /**
- * Maneuver maximum deflection 
- *
- * [DESCRIPTION]
- *
- * @unit -
- * @min 0.0
- * @max 0.8
- * @increment 0.05 
- * @group maneuver control
- */
-PARAM_DEFINE_FLOAT(MAN_MAX_DEF, 0.0f);
-
-/**
- * Maneuver minimum deflection 
- *
- * [DESCRIPTION]
- *
- * @unit -
- * @min -0.8
- * @max 0.0
- * @increment 0.05 
- * @group maneuver control
- */
-PARAM_DEFINE_FLOAT(MAN_MIN_DEF, 0.0f);
-
-/**
  * Maneuver center position 
  *
  * [DESCRIPTION]
@@ -137,7 +129,18 @@ PARAM_DEFINE_FLOAT(MAN_MIN_DEF, 0.0f);
  */
 PARAM_DEFINE_FLOAT(MAN_CENTER_POS, 0.0f);
 
-
+/**
+ * Desired control surface for the maneuver 
+ *
+ * [DESCRIPTION]
+ *
+ * @unit -
+ * @min 0 
+ * @max 3
+ * @increment 1
+ * @group maneuver control
+ */
+PARAM_DEFINE_INT32(MAN_CTRL_SURF, 0);
 
 
 
