@@ -137,8 +137,8 @@ then
 	param set PWM_AUX_FAIL8 1500  # Servo: centered
 
 	# PWM rate
-	#param set PWM_AUX_RATE 50 	# CHECK! a guy says that 400 Hz is the standard bc 8x50 Hz = 400 --> control 8 ports in parallel at 50 Hz each ?
-	#param set PWM_RATE 50 		# CHECK! a guy says that 400 Hz is the standard bc 8x50 Hz = 400 --> control 8 ports in parallel at 50 Hz each ?
+	param set PWM_AUX_RATE 100 	# CHECK! a guy says that 400 Hz is the standard bc 8x50 Hz = 400 --> control 8 ports in parallel at 50 Hz each ?
+	param set PWM_RATE 100 		# CHECK! a guy says that 400 Hz is the standard bc 8x50 Hz = 400 --> control 8 ports in parallel at 50 Hz each ?
 
 	# ----------------------------------------------------
 	#		 			USER PARAMETERS
@@ -159,7 +159,7 @@ then
 	param set RC_MAP_FLAPS 10	# Airbrakes dial (mapped to flaps channel)
 
 	# DISABLE UNUSED CHANNELS
-    param set RC_MAP_MODE_SW 0	# do not use 
+        param set RC_MAP_MODE_SW 0	# do not use 
 	param set RC_MAP_PARAM1 0	# Do we need to set any parameter with a dial? ()
 	param set RC_MAP_PARAM2 0	# Do we need to set any parameter with a dial? 
 
@@ -182,7 +182,11 @@ then
 	# param set CAL_MAG1_EN 0
 	# param set COM_ARM_MAG 0.5
 	# param set CBRK_GPSFAIL 240024
+	# param set CBRK_IO_SAFETY 22027
 	# param set CBRK_AIRSPD_CHK 162128
+	# param set CBRK_SUPPLY_CHK 894281
+	# param set CBRK_FLIGHTTERM 12121
+	# param set CBRK_USB_CHK 197848
 	# param set CBRK_BUZZER 782097
 
 fi
