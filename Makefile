@@ -57,7 +57,7 @@ endif
 # in that directory with the target upload.
 
 # explicity set default build target
-all: px4_sitl_default
+all: px4_fmu-v5_default
 
 # define a space character to be able to explicitly find it in strings
 space := $(subst ,, )
