@@ -79,20 +79,20 @@ then
 	# ----------------------------------------------------
 	# Individual limits
 	param set PWM_MAIN_MIN1 900   # Engine 1
-	param set PWM_MAIN_MIN2 1000  # Elevator
-	param set PWM_MAIN_MIN3 1270  # Aileron R
-	param set PWM_MAIN_MIN4 1350  # Aileron L
-	param set PWM_MAIN_MIN5 1250  # Rudder
+	param set PWM_MAIN_MIN2 1200  # Elevator
+	param set PWM_MAIN_MIN3 1200  # Aileron R
+	param set PWM_MAIN_MIN4 1200  # Aileron L
+	param set PWM_MAIN_MIN5 1200  # Rudder
 
 	param set PWM_AUX_MIN1 1000  # Arduino PWM 
 
   	param set PWM_MAIN_MAX1 2100  # Engine
-	param set PWM_MAIN_MAX2 2100  # Elevator
-	param set PWM_MAIN_MAX3 1850  # Aileron R
-	param set PWM_MAIN_MAX4 1700  # Aileron L
-	param set PWM_MAIN_MAX5 1750  # Rudder
+	param set PWM_MAIN_MAX2 1800  # Elevator
+	param set PWM_MAIN_MAX3 1800  # Aileron R
+	param set PWM_MAIN_MAX4 1800  # Aileron L
+	param set PWM_MAIN_MAX5 1800  # Rudder
 
-  	param set PWM_AUX_MAX1 2000  # Arduino PWM
+  	#param set PWM_AUX_MAX1 2000  # Arduino PWM
 
 	# Disarmed PWM outputs
 	param set PWM_DISARMED 1500
@@ -106,8 +106,12 @@ then
 	param set PWM_MAIN_FAIL4 1500  # Servo: centered
 	param set PWM_MAIN_FAIL5 1500  # Servo: centered
 
-	param set PWM_AUX_FAIL1 900   # Arduino PWM
+	#param set PWM_AUX_FAIL1 900   # Arduino PWM
 
+	# Channel reversal
+	param set PWM_MAIN_REV3 1
+	param set PWM_MAIN_REV4 1
+	param set PWM_MAIN_REV5 1
 	# PWM rate
 	param set PWM_RATE 100        # Refresh rate in Hz	
 	param set PWM_AUX_RATE 100    # Refresh rate in Hz	
@@ -121,11 +125,12 @@ then
 	param set RC_MAP_PITCH 3
 	param set RC_MAP_YAW 4
 
-	# MAP AUXILIARY CHANNELS 
-	param set RC_MAP_FLTMODE 6 	# Flight mode switch
-	param set RC_MAP_ARM_SW 7  	# Arming switch
-	param set RC_MAP_AUX1 5   	# Arduino PWM
-	param set RC_MAP_PARAM1 11	# Safety switch for automatic maneuvers
+	# MAP AUXILIARY CHANNELS
+       	param set RC_MAP_FLAPS 0	
+	param set RC_MAP_FLTMODE 5 	# Flight mode switch
+	param set RC_MAP_ARM_SW 6  	# Arming switch
+	#param set RC_MAP_AUX1 7   	# Arduino PWM
+	param set RC_MAP_PARAM 7	# Safety switch for automatic maneuvers
 
 	# DISABLE UNUSED CHANNELS
         param set RC_MAP_MODE_SW 0	# do not use 
@@ -138,8 +143,8 @@ then
 
 	# BATTERY ESTIMATOR
 	param set BAT_N_CELLS 3 		# 3S (11.1 V)
-	param set BAT_A_PER_V 65.02386	# Amps-per-volt (Mauch sensor)
-	param set BAT_V_DIV 19.12569	# Voltage divider (Mauch sensor)
+	#param set BAT_A_PER_V 65.02386	# Amps-per-volt (Mauch sensor)
+	#param set BAT_V_DIV 19.12569	# Voltage divider (Mauch sensor)
 	param set BAT_V_CHARGED 4.2 	# Full voltage per cell 
 	param set BAT_V_EMPTY 3.2 		# Empty voltage per cell (conservative, 3.0 V real value)
 
@@ -148,12 +153,12 @@ then
 	# param set CAL_MAG0_EN 0
 	# param set CAL_MAG1_EN 0
 	# param set COM_ARM_MAG 0.5
-	param set CBRK_GPSFAIL 240024
+	# param set CBRK_GPSFAIL 240024
 	# param set CBRK_IO_SAFETY 22027
 	# param set CBRK_AIRSPD_CHK 162128
-	param set CBRK_SUPPLY_CHK 894281
+	# param set CBRK_SUPPLY_CHK 894281
 	# param set CBRK_FLIGHTTERM 12121
-	param set CBRK_USB_CHK 197848
+	# param set CBRK_USB_CHK 197848
 	# param set CBRK_BUZZER 782097
 
 fi

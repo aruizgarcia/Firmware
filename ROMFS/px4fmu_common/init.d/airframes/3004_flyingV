@@ -70,7 +70,7 @@ then
 	
 	# Geofence and failsafe
 	param set GF_SOURCE 1 # GPS (independent of position estimation errors)
-	param set GF_ACTION 1 # 1 = Warning 3 = Return mode
+	param set GF_ACTION 0 # 1 = Warning 3 = Return mode
 	param set GF_MAX_HOR_DIST 1500 # Maximum horizontal distance from home
 	param set GF_MAX_VER_DIST 130 # Maximum vertical distance from home
 
@@ -80,8 +80,8 @@ then
 	# Individual limits
 	param set PWM_MAIN_MIN1 900  # Engine 1
 	param set PWM_MAIN_MIN2 900  # Engine 2
-	param set PWM_MAIN_MIN3 1270  # Elevator R
-	param set PWM_MAIN_MIN4 1350  # Mid R
+	param set PWM_MAIN_MIN3 1250  # Elevator R
+	param set PWM_MAIN_MIN4 1250  # Mid R
 	param set PWM_MAIN_MIN5 1250  # Aileron R
 	param set PWM_MAIN_MIN6 1000  # Rudder R
 
@@ -116,9 +116,14 @@ then
 	param set PWM_MAIN_DIS2 900  	# Engine 2
 
 	param set PWM_AUX_DISARMED 1500
-	# param set PWM_AUX_DIS1 900    # Brakes
-	# param set PWM_AUX_DIS2 2000 	# Retraction (Gear down)
-	# param set PWM_AUX_DIS3 900    # Trigger
+	param set PWM_AUX_DIS1 900     # Brakes
+	param set PWM_AUX_DIS2 2000    # Retraction (Gear down)
+ 	param set PWM_AUX_DIS3 1000    # Arduino PWM
+	param set PWM_AUX_DIS4 1500    # Servo: centered (steering)
+	param set PWM_AUX_DIS5 1500    # Servo: centered
+	param set PWM_AUX_DIS6 1500    # Servo: centered
+	param set PWM_AUX_DIS7 1500    # Servo: centered
+	param set PWM_AUX_DIS8 1500    # Servo: centered
 
 	# Failsafe PWM outputs
 	param set PWM_MAIN_FAIL1 900   # ESC: off
@@ -156,8 +161,8 @@ then
 	param set RC_MAP_AUX1 9   	# Wheel brakes dial
 	param set RC_MAP_AUX2 5 	# Gear retraction switch
 	param set RC_MAP_AUX3 8 	# Trigger switch to Arduino/Aeroprobe
-	param set RC_MAP_FLAPS 10	# Airbrakes dial (mapped to flaps channel)
-	param set RC_MAP_PARAM1 11	# Safety switch for automatic maneuvers
+	#param set RC_MAP_FLAPS 10	# Airbrakes dial (mapped to flaps channel)
+	#param set RC_MAP_PARAM1 11	# Safety switch for automatic maneuvers
 
 	# DISABLE UNUSED CHANNELS
         param set RC_MAP_MODE_SW 0	# do not use 
@@ -180,12 +185,12 @@ then
 	# param set CAL_MAG0_EN 0
 	# param set CAL_MAG1_EN 0
 	# param set COM_ARM_MAG 0.5
-	param set CBRK_GPSFAIL 240024
-	param set CBRK_IO_SAFETY 22027
-	param set CBRK_AIRSPD_CHK 162128
-	param set CBRK_SUPPLY_CHK 894281
+	# param set CBRK_GPSFAIL 240024
+	# param set CBRK_IO_SAFETY 22027
+	# param set CBRK_AIRSPD_CHK 162128
+	# param set CBRK_SUPPLY_CHK 894281
 	# param set CBRK_FLIGHTTERM 12121
-	param set CBRK_USB_CHK 197848
+	# param set CBRK_USB_CHK 197848
 	# param set CBRK_BUZZER 782097
 
 fi
