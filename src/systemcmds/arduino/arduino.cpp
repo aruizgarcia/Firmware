@@ -66,10 +66,18 @@
 #include <parameters/param.h>
 #include "drivers/drv_pwm_output.h"
 
-#define SLOW_MODE 1000
-#define FAST_MODE 1350
-#define SLAVE_RESET 1650
-#define GENERAL_RESET 1900
+#include <uORB/topics/actuator_controls.h>
+#include <uORB/topics/manual_control_setpoint.h>
+#include <uORB/topics/vehicle_control_mode.h>
+#include <uORB/topics/manual_control_setpoint.h>
+#include <uORB/uORB.h>
+#include "arduino_params.c"
+
+
+#define SLOW_MODE -0.9
+#define FAST_MODE 0.1
+#define SLAVE_RESET 0.5
+#define GENERAL_RESET 1.0
 
 static void	usage(const char *reason);
 __BEGIN_DECLS
@@ -118,20 +126,14 @@ $ pwm test -c 13 -p 1200
 	PRINT_MODULE_USAGE_NAME("Arduino", "command");
 }
 
+
 int
 arduino_main(int argc, char *argv[])
 {
-	const char *dev; 
-	//bool error_on_warn = false;
 	int ch;
-	int ret;
 	int rv = 1;
-	char *ep;
-	uint32_t set_mask = 0;
-	unsigned long channels;
-	unsigned single_ch = 0;
-	int pwm_value = 0;
-
+	float pwm_command = 0.0f; // 1500 us 
+	
 	if (argc < 2) {
 		usage(nullptr);
 		return 1;
@@ -146,21 +148,18 @@ arduino_main(int argc, char *argv[])
 		case 'c': 
 			if (strcmp(myoptarg,"SLOW_MODE") == 0) {
 				PX4_INFO("Command = SLOW_MODE"); 
-				pwm_value = SLOW_MODE; 
-				PX4_INFO("PWM value = %d",pwm_value); 
+				pwm_command = SLOW_MODE; 
 			} else if (strcmp(myoptarg,"FAST_MODE") == 0) {
 				PX4_INFO("Command = FAST_MODE"); 
-				pwm_value = FAST_MODE; 
-				PX4_INFO("PWM value = %d",pwm_value); 
+				pwm_command = FAST_MODE; 
 			} else if (strcmp(myoptarg,"SLAVE_RESET") == 0) {
 				PX4_INFO("Command = SLAVE_RESET"); 
-				pwm_value = SLAVE_RESET; 
-				PX4_INFO("PWM value = %d",pwm_value); 
+				pwm_command = SLAVE_RESET; 
 			} else if (strcmp(myoptarg,"GENERAL_RESET") == 0) {
 				PX4_INFO("Command = GENERAL_RESET"); 
-				pwm_value = GENERAL_RESET; 
-				PX4_INFO("PWM value = %d",pwm_value); 
+				pwm_command = GENERAL_RESET; 
 			}
+			PX4_INFO("PWM value = %1.1f",(double)pwm_command); 
 			break; 		
 
 			default:
@@ -168,127 +167,11 @@ arduino_main(int argc, char *argv[])
 			return 1;
 		}
 	}
+	
+	param_set(param_find("ARDUINO_PWM"), &pwm_command);
 
-
-	// Set device (aux port) and channels 
-	dev = "/dev/pwm_output1"; // AUX output pwm channels
-	channels = strtoul("3", &ep, 0); 
-	while ((single_ch = channels % 10)) {
-		set_mask |= 1 << (single_ch - 1);
-		channels /= 10;
-	}
-
-	if (myoptind >= argc) {
-		usage(nullptr);
-		return 1;
-	}
-
-	const char *command = argv[myoptind];
-
-	/* open for ioctl only */
-	int fd = px4_open(dev, 0);
-
-	if (fd < 0) {
-		PX4_ERR("can't open %s", dev);
-		return 1;
-	}
-
-	/* get the number of servo channels */
-	unsigned servo_count;
-	ret = px4_ioctl(fd, PWM_SERVO_GET_COUNT, (unsigned long)&servo_count);
-
-	if (ret != OK) {
-		PX4_ERR("PWM_SERVO_GET_COUNT");
-		rv = 1; 
-		goto err_out_arduino_nopwm;
-	}
-
-	if (!strcmp(command, "send")) {
-
-//		if (set_mask == 0) {
-//			usage("no channels set");
-//			return 1;
-//		}
-
-		if (pwm_value == 0) {
-			usage("no PWM provided");
-			return 1;
-		}
-		// get current servo values 
-		struct pwm_output_values last_spos;
-
-		for (unsigned i = 0; i < servo_count; i++) {
-
-			ret = px4_ioctl(fd, PWM_SERVO_GET(i), (unsigned long)&last_spos.values[i]);
-
-			if (ret != OK) {
-				PX4_ERR("PWM_SERVO_GET(%d)", i);
-				return 1;
-			} 
-		}
-
-		// perform PWM output 
-
-		if (::ioctl(fd, PWM_SERVO_SET_MODE, PWM_SERVO_ENTER_TEST_MODE) < 0) {
-				PX4_ERR("Failed to enter servo test mode");
-				goto err_out_arduino_nopwm;
-		}
-	for (unsigned i = 0; i < servo_count; i++) {
-		if (set_mask & 1 << i) {
-				ret = px4_ioctl(fd, PWM_SERVO_SET(i), pwm_value);
-				if (ret != OK) {
-					PX4_ERR("Arduino, CH(%d)", i);
-					goto err_out_arduino;
-				}
-			}
-		}
-/*
-	for (unsigned i = 0; i < servo_count; i++) {
-		if (set_mask & 1 << i) {
-				ret = px4_ioctl(fd, PWM_SERVO_SET(i), last_spos.values[i]);
-				if (ret != OK) {
-					PX4_ERR("Arduino, CH(%d)", i);
-					goto err_out_arduino;
-				} else {
-					PX4_INFO("Channel #%d, pwm = %d",i,last_spos.values[i]); 
-			}
-		}
-	}
-*/
-	//ret = px4_ioctl(fd, PWM_SERVO_SET(7), pwm_value);
-//	if (ret != OK) {
-//		PX4_ERR("Arduino PWM set failed");
-//	goto err_out_arduino;
-//	}
-//
-//	goto err_out_arduino; 	
-
-		
-	px4_usleep(2542); 
-#ifdef __PX4_NUTTX
-	up_pwm_update(); // Trigger all timer's channels in oneshot
-#endif
+	PX4_INFO("Command sent."); 
 	rv = 0; 
-	if (::ioctl(fd, PWM_SERVO_SET_MODE, PWM_SERVO_EXIT_TEST_MODE) < 0) {
-		rv = 1;
-		PX4_ERR("Failed to exit servo test mode");
-	}
-
 	return rv; 
-
-
-err_out_arduino:
-			if (::ioctl(fd, PWM_SERVO_SET_MODE, PWM_SERVO_EXIT_TEST_MODE) < 0) {
-					rv = 1;
-					PX4_ERR("Failed to exit servo test mode");
-			}
-
-err_out_arduino_nopwm:
-		return rv;
-
-	}
-
-	usage(nullptr);
-	return 0;
 
 }
