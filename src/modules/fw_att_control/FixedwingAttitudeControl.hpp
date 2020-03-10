@@ -207,7 +207,7 @@ private:
 
 		int32_t bat_scale_en;			/**< Battery scaling enabled */
 		bool airspeed_disabled;
-
+	
 	} _parameters{};			/**< local copies of interesting parameters */
 
 	struct {
@@ -275,6 +275,7 @@ private:
 
 		param_t bat_scale_en;
 		param_t airspeed_mode;
+
 
 	} _parameter_handles{};		/**< handles for interesting parameters */
 
