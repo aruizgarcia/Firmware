@@ -389,7 +389,7 @@ ManeuverControl::task_main()
 		 */
 
 		int timeout = 500; // timeout in ms 
-       		int ret = px4_poll(fds, (sizeof(fds) / sizeof(fds[0])), timeout);    
+       	int ret = px4_poll(fds, (sizeof(fds) / sizeof(fds[0])), timeout);    
 		uint64_t maneuver_time = 0; 
 		static float actuator_command;  
 		const char *error_flag = nullptr; 
@@ -425,7 +425,7 @@ ManeuverControl::task_main()
 		if (fds[1].revents & POLLIN) {
 			// Get a local copy of the manual setpoint (from RC controls)
 			manual_control_setpoint_poll(); 
-			
+
 			if(_run_controller) {
 				// Check if the input of the pilot is within acceptable bounds 
 				_pilot_action = check_manual_setpoint(_manual_sp, PILOT_ABORT_NEG, PILOT_ABORT_POS); 
@@ -449,10 +449,9 @@ ManeuverControl::task_main()
 
 			// Get the last manual setpoint even if it was not updated (pilot input)
 			if(orb_copy(ORB_ID(manual_control_setpoint), _manual_sub, &_manual_sp) == PX4_OK) {
-                                        _actuator_commands.roll = _manual_sp.y * _parameters.man_roll_scale + _parameters.trim_roll;                
-                                        _actuator_commands.pitch = -_manual_sp.x * _parameters.man_pitch_scale +
-                                                        _parameters.trim_pitch;                                                     
-                                        _actuator_commands.yaw = _manual_sp.r * _parameters.man_yaw_scale + _parameters.trim_yaw;
+                                        _actuator_commands.roll =  _parameters.trim_roll;                
+                                        _actuator_commands.pitch =  _parameters.trim_pitch;                                                     
+                                        _actuator_commands.yaw =  _parameters.trim_yaw;
                                         _actuator_commands.throttle = _manual_sp.z;  	
 			 } else {
 				_run_controller = false; 
@@ -466,13 +465,13 @@ ManeuverControl::task_main()
 				// Set all values to zero 
 				switch(_parameters.control_surface){
 					case 1: // Elevator
-						_actuator_commands.pitch = actuator_command;
+						_actuator_commands.pitch += actuator_command;
 						break;  
 					case 2: // Ailerons
-						_actuator_commands.roll = actuator_command; 
+						_actuator_commands.roll += actuator_command; 
 						break; 
 					case 3: // Rudders
-						_actuator_commands.yaw = actuator_command; 
+						_actuator_commands.yaw += actuator_command; 
 						break; 
 					default: // Control surface not recognized, should never happen while controller is on
 				    	error_flag = "Control surface not set"; 
