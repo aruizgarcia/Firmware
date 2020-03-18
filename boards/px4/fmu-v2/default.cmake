@@ -65,7 +65,7 @@ px4_add_board(
 
 	MODULES
 		#attitude_estimator_q
-		camera_feedback
+		#camera_feedback
 		commander
 		dataman
 		ekf2
@@ -85,17 +85,17 @@ px4_add_board(
 		navigator
 		sensors
 		vmount
-		vtol_att_control
+		#vtol_att_control
 		#wind_estimator
 
 	SYSTEMCMDS
-		bl_update
+	#bl_update
 		#config
 		#dumpfile
 		#esc_calib
-		hardfault_log
+		#hardfault_log
 		#led_control
-		mixer
+		#mixer
 		#motor_ramp
 		#motor_test
 		mtd
@@ -111,6 +111,7 @@ px4_add_board(
 		tune_control
 		#usb_connected
 		ver
+		arduino
 
 	EXAMPLES
 		#bottle_drop # OBC challenge
@@ -124,4 +125,5 @@ px4_add_board(
 		#rover_steering_control # Rover example app
 		#segway
 		#uuv_example_app
+		maneuver_control
 	)
