@@ -33,11 +33,11 @@
 
 /**
  * @file maneuver_control_params.c
- * 
- * Definition of parameters to define and control the performance 
+ *
+ * Definition of parameters to define and control the performance
  * of automatic preprogrammed maneuvers.
- * 
- *  
+ *
+ *
  * @author Alberto Ruiz Garcia <aruizgarcia-1@tudelft.nl>
  */
 
@@ -47,7 +47,7 @@
  */
 
 /**
- * Safety switch PC 
+ * Safety switch PC
  *
  * [DESCRIPTION]
  *
@@ -57,7 +57,7 @@
 PARAM_DEFINE_INT32(MAN_PC_SWITCH, 0);
 
 /**
- * Safety switch TX 
+ * Safety switch TX
  *
  * [DESCRIPTION]
  *
@@ -68,7 +68,7 @@ PARAM_DEFINE_INT32(MAN_TX_SWITCH, 0);
 
 
 /**
- * Maneuver id 
+ * Maneuver id
  *
  * [DESCRIPTION]
  *
@@ -79,7 +79,7 @@ PARAM_DEFINE_INT32(MAN_ID, 0);
 
 
 /**
- * Maneuver start time 
+ * Maneuver start time
  *
  * [DESCRIPTION]
  *
@@ -89,53 +89,53 @@ PARAM_DEFINE_INT32(MAN_ID, 0);
 PARAM_DEFINE_INT32(MAN_START, 0);
 
 /**
- * Maneuver duration 
+ * Maneuver duration
  *
  * [DESCRIPTION]
  *
  * @unit ms
  * @min 0
  * @max 10000000
- * @increment 1000 
+ * @increment 1000
  * @group maneuver control
  */
 PARAM_DEFINE_INT32(MAN_DURATION, 0);
 
 
 /**
- * Maneuver amplitude 
+ * Maneuver amplitude
  *
  * [DESCRIPTION]
  *
  * @unit -
  * @min 0.0
  * @max 0.8
- * @increment 0.05 
+ * @increment 0.05
  * @group maneuver control
  */
 PARAM_DEFINE_FLOAT(MAN_AMPLITUDE, 0.0f);
 
 
 /**
- * Maneuver center position 
+ * Maneuver center position
  *
  * [DESCRIPTION]
  *
  * @unit -
  * @min -0.4
  * @max 0.4
- * @increment 0.05 
+ * @increment 0.05
  * @group maneuver control
  */
 PARAM_DEFINE_FLOAT(MAN_CENTER_POS, 0.0f);
 
 /**
- * Desired control surface for the maneuver 
+ * Desired control surface for the maneuver
  *
  * [DESCRIPTION]
  *
  * @unit -
- * @min 0 
+ * @min 0
  * @max 3
  * @increment 1
  * @group maneuver control
@@ -143,4 +143,15 @@ PARAM_DEFINE_FLOAT(MAN_CENTER_POS, 0.0f);
 PARAM_DEFINE_INT32(MAN_CTRL_SURF, 0);
 
 
-
+/**
+ * Joystick position to abort maneuver
+ *
+ * [DESCRIPTION]
+ *
+ * @unit -
+ * @min -0.5
+ * @max 0.5
+ * @increment 0.01
+ * @group maneuver control
+ */
+PARAM_DEFINE_FLOAT(MAN_TX_ABORT, 0.0f);
