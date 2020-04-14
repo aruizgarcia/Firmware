@@ -747,6 +747,11 @@ void Logger::add_system_identification_topics()
 	add_topic("actuator_controls_0");
 	add_topic("actuator_controls_1");
 	add_topic("sensor_combined");
+    // Added by Alberto Ruiz Garcia
+    add_topic("actuator_outputs_0");
+    add_topic("actuator_outputs_1");
+    add_topic("sensor_accel");
+    add_topic("sensor_gyro");
 }
 
 int Logger::add_topics_from_file(const char *fname)

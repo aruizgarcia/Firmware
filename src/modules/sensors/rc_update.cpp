@@ -381,13 +381,31 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
 			manual.aux4 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_AUX_4, -1.0, 1.0);
 			manual.aux5 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_AUX_5, -1.0, 1.0);
 			manual.aux6 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_AUX_6, -1.0, 1.0);
-			
-			// EDIT: ALBERTO RUIZ GARCIA
-			float pwm_command = 0.0f;
-			param_get (param_find("ARDUINO_PWM"),&pwm_command); 
-			if (pwm_command < 1.0f && pwm_command > -1.0f) manual.aux1 = pwm_command;  
-			
-			/* filter controls */
+
+			// Edit: Alberto Ruiz Garcia
+            // Overrides one of the auxiliary channels (defined with a
+            // parameter in the airframe file) to send arduino commands through PWM outputs
+			// If no channel was selected in the airframe file it defaults to
+            // zero and does nothiing
+            int arduino_channel = 0;
+            param_get (param_find("ARDUINO_AUX_CH"), &arduino_channel);
+            if (arduino_channel > 0){
+                float pwm_command = 0.0f;
+			    param_get (param_find("ARDUINO_PWM"),&pwm_command);
+                switch(arduino_channel){
+                    case(1):
+                        if (pwm_command < 1.0f && pwm_command > -1.0f) manual.aux1 = pwm_command;
+                        break;
+                    case(2):
+                        if (pwm_command < 1.0f && pwm_command > -1.0f) manual.aux2 = pwm_command;
+                        break;
+                    case(3):
+                        if (pwm_command < 1.0f && pwm_command > -1.0f) manual.aux3 = pwm_command;
+                        break;
+               }
+            }
+
+            /* filter controls */
 			manual.y = math::constrain(_filter_roll.apply(manual.y), -1.f, 1.f);
 			manual.x = math::constrain(_filter_pitch.apply(manual.x), -1.f, 1.f);
 			manual.r = math::constrain(_filter_yaw.apply(manual.r), -1.f, 1.f);
