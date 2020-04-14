@@ -154,4 +154,4 @@ PARAM_DEFINE_INT32(MAN_CTRL_SURF, 0);
  * @increment 0.01
  * @group maneuver control
  */
-PARAM_DEFINE_FLOAT(MAN_TX_ABORT, 0.0f);
+PARAM_DEFINE_FLOAT(MAN_TX_ABORT, 0.1f);

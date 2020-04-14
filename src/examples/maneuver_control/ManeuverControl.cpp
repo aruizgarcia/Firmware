@@ -62,8 +62,9 @@ maneuver_control start_maneuver
         PRINT_MODULE_USAGE_COMMAND_DESCR("safety_off", "Sets the PC safety switch to OFF ");
         PRINT_MODULE_USAGE_COMMAND_DESCR("maneuver_start", "Starts maneuver immediately if safety is off");
         PRINT_MODULE_USAGE_COMMAND_DESCR("abort", "Sets safety back ON and stops the maneuver");
-
-        PRINT_MODULE_USAGE_PARAM_FLAG('c', "Control surface for the maneuver [1=elev,2=ail,3=rud]", true);
+        PRINT_MODULE_USAGE_COMMAND_DESCR("define -<flag> <value>", "Sets the parameter(s) for the maneuver");
+        PRINT_MODULE_USAGE_PARAM_COMMENT("Flags:");  
+        PRINT_MODULE_USAGE_PARAM_FLAG('c', "Control surface for the maneuver [elevator, ailerons, rudders]", true);
         PRINT_MODULE_USAGE_PARAM_FLAG('a', "Desired amplitude for the maneuver [%]", true);
         PRINT_MODULE_USAGE_PARAM_FLAG('t', "Maneuver duration [s]", true);
         PRINT_MODULE_USAGE_PARAM_FLAG('m', "Maneuver type [doublet/3211]", true);
@@ -71,6 +72,8 @@ maneuver_control start_maneuver
         PRINT_MODULE_USAGE_PARAM_COMMENT("These parameters apply to all commands:");
         PRINT_MODULE_USAGE_PARAM_FLAG('v', "Verbose output", true);
         PRINT_MODULE_USAGE_PARAM_FLAG('e', "Exit with 1 instead of 0 on error", true);
+        PRINT_MODULE_USAGE_PARAM_COMMENT("Example: 20 seconds, 50% amplitude doublet in the elevator");
+        PRINT_MODULE_USAGE_PARAM_COMMENT("         maneuver_control define -c elevator -a 50 -m doublet -t 20"); 
 
 }
 
