@@ -131,9 +131,12 @@ then
 	param set RC_MAP_ARM_SW 6  	# Arming switch
 	#param set RC_MAP_AUX1 7   	# Arduino PWM
 	#param set RC_MAP_PARAM 7	# Safety switch for automatic maneuvers
-
-	# DISABLE UNUSED CHANNELS
-        param set RC_MAP_MODE_SW 0	# do not use 
+    
+    # SELECT ARDUINO CHANNEL (AUX1, AUX2, or AUX3)
+    param set ARDUINO_AUX_CH 1 # Auxiliary channel for Arduino 
+	
+    # DISABLE UNUSED CHANNELS
+    param set RC_MAP_MODE_SW 0	# do not use 
 	param set RC_MAP_PARAM2 0	# Do we need to set any parameter with a dial? 
 
 	# FLIGHT MODES
@@ -147,6 +150,9 @@ then
 	#param set BAT_V_DIV 19.12569	# Voltage divider (Mauch sensor)
 	param set BAT_V_CHARGED 4.2 	# Full voltage per cell 
 	param set BAT_V_EMPTY 3.2 		# Empty voltage per cell (conservative, 3.0 V real value)
+
+    # AUTOMATED MANEUVER SETTINGS 
+    param set MAN_TX_ABORT 0.1
 
 	# AIRFRAME
 	param set CAL_MAG0_ROT 8

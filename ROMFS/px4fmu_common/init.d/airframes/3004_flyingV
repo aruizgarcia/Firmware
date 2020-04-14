@@ -164,8 +164,11 @@ then
 	#param set RC_MAP_FLAPS 10	# Airbrakes dial (mapped to flaps channel)
 	#param set RC_MAP_PARAM1 11	# Safety switch for automatic maneuvers
 
-	# DISABLE UNUSED CHANNELS
-        param set RC_MAP_MODE_SW 0	# do not use 
+    # SELECT ARDUINO CHANNEL (AUX1, AUX2, or AUX3)
+    param set ARDUINO_AUX_CH 3 # Auxiliary channel for Arduino
+
+    # DISABLE UNUSED CHANNELS
+    param set RC_MAP_MODE_SW 0	# do not use 
 	param set RC_MAP_PARAM2 0	# Do we need to set any parameter with a dial? 
 
 	# FLIGHT MODES
@@ -180,6 +183,9 @@ then
 	param set BAT_V_CHARGED 4.2 	# Full voltage per cell 
 	param set BAT_V_EMPTY 3.2 		# Empty voltage per cell (conservative, 3.0 V real value)
 
+    # MANEUVER SETTINGS
+    param set MAN_TX_ABORT 0.1
+
 	# CALIBRATION PARAMETERS (TO BE REMOVED/CHANGED)
 	# param set SYS_HAS_MAG 0
 	# param set CAL_MAG0_EN 0
@@ -192,7 +198,7 @@ then
 	# param set CBRK_FLIGHTTERM 12121
 	# param set CBRK_USB_CHK 197848
 	# param set CBRK_BUZZER 782097
-
+    
 fi
 
 # Set MAV_TYPE (1 = std plane)
