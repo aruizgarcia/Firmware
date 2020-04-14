@@ -78,13 +78,13 @@ px4_add_board(
 		#landing_target_estimator
 		load_mon
 		#local_position_estimator
-		logger
+        logger
 		mavlink
-		mc_att_control
-		mc_pos_control
+        #mc_att_control
+		#mc_pos_control
 		navigator
 		sensors
-		vmount
+        vmount
 		#vtol_att_control
 		#wind_estimator
 
@@ -107,7 +107,7 @@ px4_add_board(
 		#sd_bench
 		#tests # tests and test runner
 		top
-		#topic_listener
+		topic_listener
 		tune_control
 		#usb_connected
 		ver
