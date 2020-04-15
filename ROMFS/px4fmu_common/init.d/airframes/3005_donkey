@@ -155,7 +155,7 @@ then
     param set MAN_TX_ABORT 0.1
 
 	# AIRFRAME
-	param set CAL_MAG0_ROT 8
+	#param set CAL_MAG0_ROT 8
 	# CALIBRATION PARAMETERS (TO BE REMOVED/CHANGED)
 	# param set SYS_HAS_MAG 0
 	# param set CAL_MAG0_EN 0
@@ -179,4 +179,4 @@ set MIXER_AUX donkey
 
 # Set PWM channels
 set PWM_OUT 12345
-set PWM_AUX_OUT 1
+set PWM_AUX_OUT 123
