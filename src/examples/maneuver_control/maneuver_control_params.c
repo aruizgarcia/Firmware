@@ -77,7 +77,6 @@ PARAM_DEFINE_INT32(MAN_TX_SWITCH, 0);
  */
 PARAM_DEFINE_INT32(MAN_ID, 0);
 
-
 /**
  * Maneuver start time
  *
@@ -87,6 +86,17 @@ PARAM_DEFINE_INT32(MAN_ID, 0);
  * @group maneuver control
  */
 PARAM_DEFINE_INT32(MAN_START, 0);
+
+
+/**
+ * Flag to enable/disable fw_att_control 
+ *
+ * [DESCRIPTION]
+ *
+ * @unit 
+ * @group maneuver control
+ */
+PARAM_DEFINE_INT32(FW_CTRL_FLAG, 0);
 
 /**
  * Maneuver duration

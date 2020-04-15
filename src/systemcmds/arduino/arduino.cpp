@@ -95,31 +95,7 @@ usage(const char *reason)
 	PRINT_MODULE_DESCRIPTION(
 		R"DESCR_STR(
 ### Description
-This command is used to configure PWM outputs for servo and ESC control.
 
-The default device `/dev/pwm_output0` are the Main channels, AUX channels are on `/dev/pwm_output1` (`-d` parameter).
-
-It is used in the startup script to make sure the PWM parameters (`PWM_*`) are applied (or the ones provided
-by the airframe config if specified). `pwm info` shows the current settings (the trim value is an offset
-and configured with `PWM_MAIN_TRIMx` and `PWM_AUX_TRIMx`).
-
-The disarmed value should be set such that the motors don't spin (it's also used for the kill switch), at the
-minimum value they should spin.
-
-Channels are assigned to a group. Due to hardware limitations, the update rate can only be set per group. Use
-`pwm info` to display the groups. If the `-c` argument is used, all channels of any included group must be included.
-
-The parameters `-p` and `-r` can be set to a parameter instead of specifying an integer: use -p p:PWM_MIN for example.
-
-Note that in OneShot mode, the PWM range [1000, 2000] is automatically mapped to [125, 250].
-
-### Examples
-Set the PWM rate for all channels to 400 Hz:
-$ pwm rate -a -r 400
-
-Test the outputs of eg. channels 1 and 3, and set the PWM value to 1200 us:
-$ pwm arm
-$ pwm test -c 13 -p 1200
 
 )DESCR_STR");
 

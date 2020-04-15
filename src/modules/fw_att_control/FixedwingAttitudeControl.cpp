@@ -560,6 +560,14 @@ void FixedwingAttitudeControl::run()
 				deltaT = 0.01f;
 			}
 
+            // EDIT: Alberto Ruiz Garcia (automated maneuvers)
+            // Check if maneuver_control is enabled
+            int32_t maneuver_controller_enabled;
+            param_get(param_find("MAN_CTRL_FLAG"),&maneuver_controller_enabled);
+            if (maneuver_controller_enabled == MAN_CTRL_ENABLED){ // Skip iteration
+                continue;
+            }
+
 			/* load local copies */
 			orb_copy(ORB_ID(vehicle_attitude), _att_sub, &_att);
 

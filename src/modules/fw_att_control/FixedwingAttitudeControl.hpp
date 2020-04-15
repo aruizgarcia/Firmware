@@ -61,6 +61,8 @@
 #include <uORB/topics/vehicle_rates_setpoint.h>
 #include <uORB/topics/vehicle_status.h>
 
+#define MAN_CTRL_ENABLED 123098
+
 using matrix::Eulerf;
 using matrix::Quatf;
 
@@ -207,7 +209,6 @@ private:
 
 		int32_t bat_scale_en;			/**< Battery scaling enabled */
 		bool airspeed_disabled;
-	
 	} _parameters{};			/**< local copies of interesting parameters */
 
 	struct {

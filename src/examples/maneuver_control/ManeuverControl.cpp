@@ -119,7 +119,8 @@ ManeuverControl::parameters_init()
 	_parameter_handles.safety_switch_pc =   param_find("MAN_PC_SWITCH");
 	_parameter_handles.safety_switch_tx =   param_find("MAN_TX_SWITCH");
 	_parameter_handles.start_maneuver 	=	param_find("MAN_START");
-	_parameter_handles.maneuver_id 		=	param_find("MAN_ID");
+	_parameter_handles.fw_ctrl_flag     =   param_find("FW_CTRL_FLAG");
+    _parameter_handles.maneuver_id 		=	param_find("MAN_ID");
 	_parameter_handles.control_surface 	=	param_find("MAN_CTRL_SURF");
 	_parameter_handles.duration 		=	param_find("MAN_DURATION");
 	_parameter_handles.amplitude 		=	param_find("MAN_AMPLITUDE");
@@ -135,6 +136,7 @@ ManeuverControl::parameters_update()
 	param_get(_parameter_handles.safety_switch_pc, &(_parameters.safety_switch_pc));
 	param_get(_parameter_handles.safety_switch_tx, &(_parameters.safety_switch_tx));
 	param_get(_parameter_handles.start_maneuver, &(_parameters.start_maneuver));
+	param_get(_parameter_handles.fw_ctrl_flag, &(_parameters.fw_ctrl_flag));
 	param_get(_parameter_handles.maneuver_id, &(_parameters.maneuver_id));
 	param_get(_parameter_handles.control_surface, &(_parameters.control_surface));
 	param_get(_parameter_handles.duration, &(_parameters.duration));
@@ -190,14 +192,13 @@ ManeuverControl::compute_maneuver (uint64_t maneuver_time){
                 actuator_command = compute_3211(maneuver_time, _parameters.duration, _parameters.amplitude);
         } else { // Not recognized, should never happen
                 actuator_command = 0.0f;
-                _run_controller = false; // Stop controller
+                terminate_maneuver(); // Stop controller
                 PX4_ERR("Maneuver not set!");
         }
 
         if (maneuver_time > _parameters.duration * 1000U){
-                _run_controller = false;
-                set_safety_pc(PC_SAFETY_ON);
                 printf("\t\t>>> Done, PC safety back on\n");
+                terminate_maneuver(); 
         }
 
         return actuator_command;
@@ -321,6 +322,17 @@ ManeuverControl::check_manual_setpoint(struct manual_control_setpoint_s manual_s
 	}
 }
 
+void
+ManeuverControl::terminate_maneuver()
+{
+    _run_controller = false; // Disable controller
+    set_safety_pc(PC_SAFETY_ON);
+    int32_t option = FW_CTRL_ENABLE;
+    param_set(_parameter_handles.fw_ctrl_flag, &option);
+    PX4_INFO("Maneuver finished/aborted");
+    return;
+}
+
 // Main task launcher
 int
 ManeuverControl::task_main_trampoline(int argc, char *argv[])
@@ -399,7 +411,7 @@ ManeuverControl::task_main()
 		 * a param update is published. Minimal latency.
 		 */
 
-		int timeout = 500; // timeout in ms
+		int timeout = 100; // timeout in ms
        	int ret = px4_poll(fds, (sizeof(fds) / sizeof(fds[0])), timeout);
 		uint64_t maneuver_time = 0;
 		static float actuator_command;
@@ -432,7 +444,8 @@ ManeuverControl::task_main()
                     set_start_flag(START_MANEUVER_OFF);
                     _run_controller = true;
                 } else {
-                    _run_controller = false;
+                    terminate_maneuver();
+                    set_start_flag(START_MANEUVER_OFF);
                     PX4_WARN("Manual setpoint missing");
 	            }
 		    }
@@ -448,7 +461,7 @@ ManeuverControl::task_main()
 				_pilot_action = check_manual_setpoint(_manual_sp, _manual_sp_trim,  -_parameters.tx_pos_abort, _parameters.tx_pos_abort);
 
 				if (_pilot_action) { // Pilot is fighting against the maneuver
-					_run_controller = false;
+					terminate_maneuver();
 					PX4_INFO("Pilot abort");
 				}
 
@@ -470,9 +483,10 @@ ManeuverControl::task_main()
                 _actuator_commands.pitch =  -_manual_sp_trim.x;
                 _actuator_commands.yaw =  _manual_sp_trim.r;
                 _actuator_commands.throttle = _manual_sp.z;
-			 } else {
-				_run_controller = false;
-			 }
+			 } else if (_run_controller) {
+		    	terminate_maneuver();
+			    error_flag = "Manual setpoint missing";
+             }
 
 			// If the controller should run
 	        if (_run_controller) {
@@ -492,7 +506,7 @@ ManeuverControl::task_main()
 						break;
 					default: // Control surface not recognized, should never happen while controller is on
 				    	error_flag = "Control surface not set";
-						_run_controller = false; // Stops maneuver controller in next iteration
+						terminate_maneuver(); // Stops maneuver controller in next iteration
 				}
 
 				// Write actuator values
@@ -513,22 +527,10 @@ ManeuverControl::task_main()
 					} else {
 						_actuators_0_pub = orb_advertise(ORB_ID(actuator_controls_0), &_actuators);
 					}
-/*
-					if (_actuators_2_pub != nullptr) {
-						orb_publish(ORB_ID(actuator_controls_2), _actuators_2_pub, &_actuators);
-					} else {
-						_actuators_0_pub = orb_advertise(ORB_ID(actuator_controls_2), &_actuators);
-					}
 
-					if (_actuators_1_pub != nullptr) {
-						orb_publish(ORB_ID(actuator_controls_1), _actuators_1_pub, &_actuators);
-					} else {
-						_actuators_1_pub = orb_advertise(ORB_ID(actuator_controls_1), &_actuators);
-					}
-*/
 				} else { // Safety on
 				    error_flag = "PC/TX safety enabled.";
-				    _run_controller = false;
+				    terminate_maneuver();
 				}
 			}
 
@@ -794,8 +796,8 @@ int maneuver_control_main(int argc, char *argv[])
             PX4_WARN("not running");
             return 1;
 	    }
-
-    	maneuver_controller::control_ptr->set_start_maneuver(START_MANEUVER_ON);
+        maneuver_controller::control_ptr->set_fw_controller_status(FW_CTRL_DISABLE);
+        maneuver_controller::control_ptr->set_start_maneuver(START_MANEUVER_ON);
 
     } else if (!strcmp(command,"safety_on")){
 	    if (maneuver_controller::control_ptr == nullptr) {
@@ -839,7 +841,8 @@ int maneuver_control_main(int argc, char *argv[])
             return 1;
 	    }
     	maneuver_controller::control_ptr->set_safety_pc(PC_SAFETY_ON);
-   	maneuver_controller::control_ptr->set_safety_tx(TX_SAFETY_ON);
+   	    maneuver_controller::control_ptr->set_safety_tx(TX_SAFETY_ON);
+        maneuver_controller::control_ptr->set_fw_controller_status(FW_CTRL_ENABLE);
     } else {
     	PX4_WARN("unrecognized command");
     	return 1;
