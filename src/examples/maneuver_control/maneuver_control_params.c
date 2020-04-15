@@ -96,7 +96,7 @@ PARAM_DEFINE_INT32(MAN_START, 0);
  * @unit 
  * @group maneuver control
  */
-PARAM_DEFINE_INT32(FW_CTRL_FLAG, 0);
+PARAM_DEFINE_INT32(MAN_CTRL_FLAG, 0);
 
 /**
  * Maneuver duration

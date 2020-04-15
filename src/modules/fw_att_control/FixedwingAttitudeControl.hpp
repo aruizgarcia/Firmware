@@ -61,7 +61,7 @@
 #include <uORB/topics/vehicle_rates_setpoint.h>
 #include <uORB/topics/vehicle_status.h>
 
-#define MAN_CTRL_ENABLED 123098
+#define DISABLE_FW_CONTROLLER 123098
 
 using matrix::Eulerf;
 using matrix::Quatf;

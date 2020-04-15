@@ -512,11 +512,18 @@ float FixedwingAttitudeControl::get_airspeed_and_update_scaling()
 void FixedwingAttitudeControl::run()
 {
 	/* wakeup source */
-	px4_pollfd_struct_t fds[1];
+	//px4_pollfd_struct_t fds[2];
+
+	// EDIT: Alberto Ruiz Garcia (automated maneuvers)
+	int32_t maneuver_control_flag; // Flag to enable/disable actuator publications
+	// Wake up source
+	struct pollfd fds[2] = {};
 
 	/* Setup of loop */
 	fds[0].fd = _att_sub;
 	fds[0].events = POLLIN;
+	fds[1].fd = _params_sub;
+	fds[1].events = POLLIN;
 
 	while (!should_exit()) {
 
@@ -534,7 +541,9 @@ void FixedwingAttitudeControl::run()
 		}
 
 		/* wait for up to 500ms for data */
-		int pret = px4_poll(&fds[0], (sizeof(fds) / sizeof(fds[0])), 100);
+		//int pret = px4_poll(&fds[0], (sizeof(fds) / sizeof(fds[0])), 100);
+		// EDIT: Alberto Ruiz Garcia (automated maneuvers)
+		int pret = px4_poll(fds, (sizeof(fds) / sizeof(fds[0])), 100);
 
 		/* timed out - periodic check for _task_should_exit, etc. */
 		if (pret == 0) {
@@ -549,6 +558,12 @@ void FixedwingAttitudeControl::run()
 
 		perf_begin(_loop_perf);
 
+		// EDIT: Alberto Ruiz Garcia (automated maneuvers)
+		if (fds[1].revents & POLLIN){ // Get value from maneuver control flag
+			param_get(param_find("MAN_CTRL_FLAG"),&maneuver_control_flag);
+			//PX4_INFO("Maneuver flag updated!");
+		}
+
 		/* only run controller if attitude changed */
 		if (fds[0].revents & POLLIN) {
 			static uint64_t last_run = 0;
@@ -562,11 +577,14 @@ void FixedwingAttitudeControl::run()
 
             // EDIT: Alberto Ruiz Garcia (automated maneuvers)
             // Check if maneuver_control is enabled
-            int32_t maneuver_controller_enabled;
-            param_get(param_find("MAN_CTRL_FLAG"),&maneuver_controller_enabled);
-            if (maneuver_controller_enabled == MAN_CTRL_ENABLED){ // Skip iteration
-                continue;
-            }
+            //int32_t maneuver_control_flag;
+            // param_get(param_find("MAN_CTRL_FLAG"),&maneuver_control_flag);
+            //maneuver_control_flag = 3;
+            //printf("%d\n", (int)maneuver_control_flag);
+            //if (maneuver_control_flag > 0){ // Skip iteration
+               // PX4_INFO("Controller disabled!");
+               //continue;
+            //}
 
 			/* load local copies */
 			orb_copy(ORB_ID(vehicle_attitude), _att_sub, &_att);
@@ -906,7 +924,11 @@ void FixedwingAttitudeControl::run()
 			    _vcontrol_mode.flag_control_attitude_enabled ||
 			    _vcontrol_mode.flag_control_manual_enabled) {
 				/* publish the actuator controls */
-				if (_actuators_0_pub != nullptr) {
+				
+				// EDIT: Alberto Ruiz Garcia (automated maneuvers)
+				// If the maneuver controller is running, maneuver_control_flag > 0 
+				// which disables actuator publications from this module
+				if (_actuators_0_pub != nullptr && maneuver_control_flag == 0) {
 					orb_publish(_actuators_id, _actuators_0_pub, &_actuators);
 
 				} else if (_actuators_id) {

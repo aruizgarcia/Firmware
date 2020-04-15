@@ -119,7 +119,7 @@ ManeuverControl::parameters_init()
 	_parameter_handles.safety_switch_pc =   param_find("MAN_PC_SWITCH");
 	_parameter_handles.safety_switch_tx =   param_find("MAN_TX_SWITCH");
 	_parameter_handles.start_maneuver 	=	param_find("MAN_START");
-	_parameter_handles.fw_ctrl_flag     =   param_find("FW_CTRL_FLAG");
+	_parameter_handles.ctrl_flag     =   param_find("MAN_CTRL_FLAG");
     _parameter_handles.maneuver_id 		=	param_find("MAN_ID");
 	_parameter_handles.control_surface 	=	param_find("MAN_CTRL_SURF");
 	_parameter_handles.duration 		=	param_find("MAN_DURATION");
@@ -136,7 +136,7 @@ ManeuverControl::parameters_update()
 	param_get(_parameter_handles.safety_switch_pc, &(_parameters.safety_switch_pc));
 	param_get(_parameter_handles.safety_switch_tx, &(_parameters.safety_switch_tx));
 	param_get(_parameter_handles.start_maneuver, &(_parameters.start_maneuver));
-	param_get(_parameter_handles.fw_ctrl_flag, &(_parameters.fw_ctrl_flag));
+	param_get(_parameter_handles.ctrl_flag, &(_parameters.ctrl_flag));
 	param_get(_parameter_handles.maneuver_id, &(_parameters.maneuver_id));
 	param_get(_parameter_handles.control_surface, &(_parameters.control_surface));
 	param_get(_parameter_handles.duration, &(_parameters.duration));
@@ -327,8 +327,8 @@ ManeuverControl::terminate_maneuver()
 {
     _run_controller = false; // Disable controller
     set_safety_pc(PC_SAFETY_ON);
-    int32_t option = FW_CTRL_ENABLE;
-    param_set(_parameter_handles.fw_ctrl_flag, &option);
+    int32_t option = ENABLE_FW_CONTROLLER;
+    param_set(_parameter_handles.ctrl_flag, &option);
     PX4_INFO("Maneuver finished/aborted");
     return;
 }
@@ -444,7 +444,9 @@ ManeuverControl::task_main()
                     set_start_flag(START_MANEUVER_OFF);
                     _run_controller = true;
                 } else {
-                    terminate_maneuver();
+                   // terminate_maneuver();
+                	_run_controller = true;
+                	_start_time = hrt_absolute_time(); 
                     set_start_flag(START_MANEUVER_OFF);
                     PX4_WARN("Manual setpoint missing");
 	            }
@@ -484,8 +486,8 @@ ManeuverControl::task_main()
                 _actuator_commands.yaw =  _manual_sp_trim.r;
                 _actuator_commands.throttle = _manual_sp.z;
 			 } else if (_run_controller) {
-		    	terminate_maneuver();
-			    error_flag = "Manual setpoint missing";
+		    	//terminate_maneuver();
+			    //error_flag = "Manual setpoint missing";
              }
 
 			// If the controller should run
@@ -796,7 +798,7 @@ int maneuver_control_main(int argc, char *argv[])
             PX4_WARN("not running");
             return 1;
 	    }
-        maneuver_controller::control_ptr->set_fw_controller_status(FW_CTRL_DISABLE);
+        maneuver_controller::control_ptr->set_fw_controller_status(DISABLE_FW_CONTROLLER);
         maneuver_controller::control_ptr->set_start_maneuver(START_MANEUVER_ON);
 
     } else if (!strcmp(command,"safety_on")){
@@ -842,7 +844,7 @@ int maneuver_control_main(int argc, char *argv[])
 	    }
     	maneuver_controller::control_ptr->set_safety_pc(PC_SAFETY_ON);
    	    maneuver_controller::control_ptr->set_safety_tx(TX_SAFETY_ON);
-        maneuver_controller::control_ptr->set_fw_controller_status(FW_CTRL_ENABLE);
+        maneuver_controller::control_ptr->set_fw_controller_status(ENABLE_FW_CONTROLLER);
     } else {
     	PX4_WARN("unrecognized command");
     	return 1;

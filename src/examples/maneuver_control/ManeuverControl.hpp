@@ -39,8 +39,8 @@
 #define START_MANEUVER_OFF 0
 #define MANEUVER_ID_DOUBLET 1
 #define MANEUVER_ID_3211 2
-#define FW_CTRL_ENABLE 0
-#define FW_CTRL_DISABLE 123098
+#define ENABLE_FW_CONTROLLER 0
+#define DISABLE_FW_CONTROLLER 123098
 
 class ManeuverControl
 {
@@ -67,7 +67,7 @@ public:
 	void set_maneuver_duration(int32_t duration) {param_set(_parameter_handles.duration, &duration); }
 	void set_control_surface(int32_t surface) {param_set(_parameter_handles.control_surface, &surface); }
     void set_pilot_abort(int32_t option) {param_set(_parameter_handles.tx_pos_abort, &option);}
-    void set_fw_controller_status(int32_t option) {param_set(_parameter_handles.fw_ctrl_flag, &option);}
+    void set_fw_controller_status(int32_t option) {param_set(_parameter_handles.ctrl_flag, &option);}
 
 private:
 //	bool		_debug{true};					//if set to true, print debug output
@@ -114,7 +114,7 @@ private:
 		int32_t safety_switch_pc; 	// PC safety flag
 		int32_t safety_switch_tx; 	// TX safety flag
 		int32_t start_maneuver;		// Start maneuver flag
-        int32_t fw_ctrl_flag; // Flag to enable/disable fw_att_control
+        int32_t ctrl_flag; // Flag to enable/disable fw_att_control
 		int32_t maneuver_id; 		// Maneuver index
 		int32_t control_surface;	// Control surface index
 		int32_t duration; 		// Total duration [ms]
@@ -133,7 +133,7 @@ private:
 		param_t safety_switch_pc;
 		param_t safety_switch_tx;
 		param_t start_maneuver;
-        param_t fw_ctrl_flag;
+        param_t ctrl_flag;
 		param_t maneuver_id;
 		param_t control_surface;
 		param_t duration;
