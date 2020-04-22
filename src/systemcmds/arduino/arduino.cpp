@@ -1,45 +1,13 @@
-/****************************************************************************
- *
- *   Copyright (c) 2013, 2014, 2017 PX4 Development Team. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. Neither the name PX4 nor the names of its contributors may be
- *    used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
- * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
- * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
- * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- ****************************************************************************/
-
 /**
- * @file pwm.cpp
+ * @file arduino.cpp
+ * Author: Alberto Ruiz Garcia <a.ruizgarcia-1@tudelft.nl>
+ * Faculty of Aerospace Engineering - Delft University of Technology
  *
- * PWM servo output configuration and monitoring tool.
+ * PWM commands to communicate and synchronize with onboard microcontroller.
+ * Inspired in pwm.cpp from PX4 systemcmds
  */
 
 #include <px4_config.h>
-#include <px4_tasks.h>
-#include <px4_posix.h>
 #include <px4_getopt.h>
 #include <px4_defines.h>
 #include <px4_log.h>
@@ -52,7 +20,6 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <poll.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 
@@ -64,20 +31,14 @@
 
 #include "systemlib/err.h"
 #include <parameters/param.h>
-#include "drivers/drv_pwm_output.h"
 
-#include <uORB/topics/actuator_controls.h>
-#include <uORB/topics/manual_control_setpoint.h>
-#include <uORB/topics/vehicle_control_mode.h>
-#include <uORB/topics/manual_control_setpoint.h>
-#include <uORB/uORB.h>
 #include "arduino_params.c"
 
-
+// PWM output for each command
 #define SLOW_MODE -0.9
 #define FAST_MODE 0.1
 #define SLAVE_RESET 0.5
-#define GENERAL_RESET 1.0
+#define GENERAL_RESET 0.95
 
 static void	usage(const char *reason);
 __BEGIN_DECLS
@@ -99,7 +60,15 @@ usage(const char *reason)
 
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("Arduino", "command");
+	PRINT_MODULE_USAGE_NAME("Arduino", "system command");
+    PRINT_MODULE_USAGE_COMMAND_DESCR("send", "Sends the command selected with -c flag");
+    PRINT_MODULE_USAGE_PARAM_COMMENT("Flags:");
+    PRINT_MODULE_USAGE_PARAM_FLAG('c', "PWM command: SLOW_MODE/FAST_MODE/SLAVE_RESET/GENERAL_RESET",true);
+    PRINT_MODULE_USAGE_PARAM_COMMENT("\t\t.-SLOW_MODE: lowers Arduino sampling rate to allow comms with ground station");
+    PRINT_MODULE_USAGE_PARAM_COMMENT("\t\t.-FAST_MODE: increases Arduino sampling rate to take measurements at max rate");
+    PRINT_MODULE_USAGE_PARAM_COMMENT("\t\t.-SLAVE_RESET: resets the slave Arduino connected to Air Data Computer");
+    PRINT_MODULE_USAGE_PARAM_COMMENT("\t\t.-GENERAL_RESET: resets both the master and slave Arduino");
+    PRINT_MODULE_USAGE_PARAM_COMMENT("Example usage: arduino send -c FAST_MODE");
 }
 
 
@@ -107,9 +76,9 @@ int
 arduino_main(int argc, char *argv[])
 {
 	int ch;
-	int rv = 1;
-	float pwm_command = 0.0f; // 1500 us 
-	
+	uint8_t command_recvd = 0;
+	float pwm_command = 0.0f; // 1500 us
+
 	if (argc < 2) {
 		usage(nullptr);
 		return 1;
@@ -118,36 +87,41 @@ arduino_main(int argc, char *argv[])
 	int myoptind = 1;
 	const char *myoptarg = nullptr;
 
-	while ((ch = px4_getopt(argc, argv, "v:c:e:", &myoptind, &myoptarg)) != EOF) {
+	while ((ch = px4_getopt(argc, argv, "c:", &myoptind, &myoptarg)) != EOF) {
 		switch (ch) {
 
-		case 'c': 
+		case 'c':
+            command_recvd = 1;
 			if (strcmp(myoptarg,"SLOW_MODE") == 0) {
-				PX4_INFO("Command = SLOW_MODE"); 
-				pwm_command = SLOW_MODE; 
+				PX4_INFO("Command = SLOW_MODE");
+				pwm_command = SLOW_MODE;
 			} else if (strcmp(myoptarg,"FAST_MODE") == 0) {
-				PX4_INFO("Command = FAST_MODE"); 
-				pwm_command = FAST_MODE; 
+				PX4_INFO("Command = FAST_MODE");
+				pwm_command = FAST_MODE;
 			} else if (strcmp(myoptarg,"SLAVE_RESET") == 0) {
-				PX4_INFO("Command = SLAVE_RESET"); 
-				pwm_command = SLAVE_RESET; 
+				PX4_INFO("Command = SLAVE_RESET");
+				pwm_command = SLAVE_RESET;
 			} else if (strcmp(myoptarg,"GENERAL_RESET") == 0) {
-				PX4_INFO("Command = GENERAL_RESET"); 
-				pwm_command = GENERAL_RESET; 
-			}
-			PX4_INFO("PWM value = %1.1f",(double)pwm_command); 
-			break; 		
+				PX4_INFO("Command = GENERAL_RESET");
+				pwm_command = GENERAL_RESET;
+			} else {
+                PX4_ERR("Command not recognized");
+                command_recvd = 0;
+            }
+			break;
 
 			default:
-			usage(nullptr);
-			return 1;
+			    usage(nullptr);
+                return 1;
 		}
 	}
-	
-	param_set(param_find("ARDUINO_PWM"), &pwm_command);
 
-	PX4_INFO("Command sent."); 
-	rv = 0; 
-	return rv; 
+    if (command_recvd > 0){
+	    PX4_INFO("PWM value = %1.1f",(double)pwm_command);
+        param_set(param_find("ARDUINO_PWM"), &pwm_command);
+	    PX4_INFO("Command sent.");
+    }
+
+    return 0;
 
 }
