@@ -88,6 +88,7 @@ px4_add_board(
 		vmount
 		vtol_att_control
 		wind_estimator
+		maneuver_control # Added by Alberto Ruiz Garcia
 
 	SYSTEMCMDS
 		bl_update
@@ -115,7 +116,6 @@ px4_add_board(
 		usb_connected
 		ver
 		arduino # Added by Alberto Ruiz Garcia
-		maneuver # Added by Alberto Ruiz Garcia	
 		
 	EXAMPLES
 		bottle_drop # OBC challenge
@@ -129,6 +129,5 @@ px4_add_board(
 		rover_steering_control # Rover example app
 		segway
 		uuv_example_app
-		maneuver_control # Added by Alberto Ruiz Garcia
 
 	)
