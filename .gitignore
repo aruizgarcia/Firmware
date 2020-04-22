@@ -71,5 +71,3 @@ ROMFS/px4fmu_common/init.d/rc.rover_apps
 ROMFS/px4fmu_common/init.d/rc.rover_defaults
 ROMFS/px4fmu_common/mixers/rover_generic.main.mix
 QGroundControl.AppImage
-Tools/sitl_gazebo/external
-src/lib/matrix
