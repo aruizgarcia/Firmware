@@ -515,7 +515,7 @@ void FixedwingAttitudeControl::run()
 	//px4_pollfd_struct_t fds[2];
 
 	// EDIT: Alberto Ruiz Garcia (automated maneuvers)
-	int32_t maneuver_control_flag; // Flag to enable/disable actuator publications
+	static int32_t maneuver_control_flag; // Flag to enable/disable actuator publications
 	// Wake up source
 	struct pollfd fds[2] = {};
 
@@ -560,6 +560,8 @@ void FixedwingAttitudeControl::run()
 
 		// EDIT: Alberto Ruiz Garcia (automated maneuvers)
 		if (fds[1].revents & POLLIN){ // Get value from maneuver control flag
+			// Get only MAN_CTRL_FLAG for a quicker response and to let fw_att_control 
+			// handle its own parameters (don't clear the update flag) 
 			param_get(param_find("MAN_CTRL_FLAG"),&maneuver_control_flag);
 			//PX4_INFO("Maneuver flag updated!");
 		}
@@ -574,17 +576,6 @@ void FixedwingAttitudeControl::run()
 			if (deltaT > 1.0f) {
 				deltaT = 0.01f;
 			}
-
-            // EDIT: Alberto Ruiz Garcia (automated maneuvers)
-            // Check if maneuver_control is enabled
-            //int32_t maneuver_control_flag;
-            // param_get(param_find("MAN_CTRL_FLAG"),&maneuver_control_flag);
-            //maneuver_control_flag = 3;
-            //printf("%d\n", (int)maneuver_control_flag);
-            //if (maneuver_control_flag > 0){ // Skip iteration
-               // PX4_INFO("Controller disabled!");
-               //continue;
-            //}
 
 			/* load local copies */
 			orb_copy(ORB_ID(vehicle_attitude), _att_sub, &_att);
@@ -920,15 +911,16 @@ void FixedwingAttitudeControl::run()
 			_actuators_airframe.timestamp_sample = _att.timestamp;
 
 			/* Only publish if any of the proper modes are enabled */
-			if (_vcontrol_mode.flag_control_rates_enabled ||
+			if ((_vcontrol_mode.flag_control_rates_enabled ||
 			    _vcontrol_mode.flag_control_attitude_enabled ||
-			    _vcontrol_mode.flag_control_manual_enabled) {
+			    _vcontrol_mode.flag_control_manual_enabled) && 
+			    maneuver_control_flag == 0) {
 				/* publish the actuator controls */
 				
 				// EDIT: Alberto Ruiz Garcia (automated maneuvers)
 				// If the maneuver controller is running, maneuver_control_flag > 0 
 				// which disables actuator publications from this module
-				if (_actuators_0_pub != nullptr && maneuver_control_flag == 0) {
+				if (_actuators_0_pub != nullptr) {
 					orb_publish(_actuators_id, _actuators_0_pub, &_actuators);
 
 				} else if (_actuators_id) {
