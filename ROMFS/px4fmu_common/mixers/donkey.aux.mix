@@ -1,6 +1,13 @@
 # Donkey aux mixer 
 
-#aux1: Arduino PWM command (manual passthrough)
+#aux1: Arduino PWM command
 M: 1
 S: 3 5 10000 10000 	  0 -10000 10000
 
+#aux2: Arduino PWM command
+M: 1
+S: 3 6 10000 10000 0 -10000 10000
+
+#aux3: Arduino PWM command 
+M: 1
+S: 3 7 10000 10000 0 -10000 10000

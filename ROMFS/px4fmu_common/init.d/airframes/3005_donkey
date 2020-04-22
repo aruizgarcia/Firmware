@@ -132,9 +132,7 @@ then
 	#param set RC_MAP_AUX1 7   	# Arduino PWM
 	#param set RC_MAP_PARAM 7	# Safety switch for automatic maneuvers
     
-    # SELECT ARDUINO CHANNEL (AUX1, AUX2, or AUX3)
-    param set ARDUINO_AUX_CH 1 # Auxiliary channel for Arduino 
-	
+
     # DISABLE UNUSED CHANNELS
     param set RC_MAP_MODE_SW 0	# do not use 
 	param set RC_MAP_PARAM2 0	# Do we need to set any parameter with a dial? 
@@ -170,6 +168,9 @@ then
 	# param set CBRK_BUZZER 782097
 
 fi
+
+# SELECT ARDUINO CHANNEL (AUX1, AUX2, or AUX3)
+param set ARDUINO_AUX_CH 1 # Auxiliary channel for Arduino
 
 # Set MAV_TYPE (1 = std plane)
 set MAV_TYPE 1
