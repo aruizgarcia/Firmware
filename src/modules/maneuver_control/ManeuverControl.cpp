@@ -119,7 +119,7 @@ ManeuverControl::parameters_init()
 	_parameter_handles.safety_switch_pc =   param_find("MAN_PC_SWITCH");
 	_parameter_handles.safety_switch_tx =   param_find("MAN_TX_SWITCH");
 	_parameter_handles.start_maneuver 	=	param_find("MAN_START");
-	_parameter_handles.ctrl_flag     =   param_find("MAN_CTRL_FLAG");
+	_parameter_handles.ctrl_flag     	=   param_find("MAN_CTRL_FLAG");
     _parameter_handles.maneuver_id 		=	param_find("MAN_ID");
 	_parameter_handles.control_surface 	=	param_find("MAN_CTRL_SURF");
 	_parameter_handles.duration 		=	param_find("MAN_DURATION");
@@ -444,9 +444,9 @@ ManeuverControl::task_main()
                     set_start_flag(START_MANEUVER_OFF);
                     _run_controller = true;
                 } else {
-                   // terminate_maneuver();
-                	_run_controller = true;
-                	_start_time = hrt_absolute_time(); 
+                    terminate_maneuver();
+                	//_run_controller = true;
+                	//_start_time = hrt_absolute_time(); 
                     set_start_flag(START_MANEUVER_OFF);
                     PX4_WARN("Manual setpoint missing");
 	            }
@@ -486,8 +486,8 @@ ManeuverControl::task_main()
                 _actuator_commands.yaw =  _manual_sp_trim.r;
                 _actuator_commands.throttle = _manual_sp.z;
 			 } else if (_run_controller) {
-		    	//terminate_maneuver();
-			    //error_flag = "Manual setpoint missing";
+		    	terminate_maneuver();
+			    error_flag = "Manual setpoint missing";
              }
 
 			// If the controller should run
@@ -521,8 +521,9 @@ ManeuverControl::task_main()
 				_actuators.timestamp = hrt_absolute_time();
 				_actuators.timestamp_sample = _att.timestamp;
 
-				// Only publish if both pilot and pc safety are off
-				if (_parameters.safety_switch_pc == PC_SAFETY_OFF && _parameters.safety_switch_tx == TX_SAFETY_OFF) {
+				// Only publish if both pilot and pc safety are off and fw_att_control is disabled
+				if (_parameters.safety_switch_pc == PC_SAFETY_OFF && _parameters.safety_switch_tx == TX_SAFETY_OFF && 
+					_parameters.ctrl_flag == DISABLE_FW_CONTROLLER) {
 					// Publish actuator controls
 					if (_actuators_0_pub != nullptr) {
 						orb_publish(ORB_ID(actuator_controls_0), _actuators_0_pub, &_actuators);
@@ -600,11 +601,13 @@ int maneuver_control_main(int argc, char *argv[])
 			if (px4_get_parameter_value(myoptarg, commanded_amplitude) != 0) {
 				PX4_ERR("CLI argument parsing for maneuver amplitude failed");
 				return 1;
-			} else {
+			} else if(commanded_amplitude > 0 && commanded_amplitude < 100) {
 				PX4_INFO("Maneuver amplitude: %d%%", commanded_amplitude);
 				amplitude_update = true;
-			}
-			break;
+			} else {
+                PX4_ERR("Amplitude: out of bounds");
+            }
+            break;
 
 		case 'c':
 			if (strcmp(myoptarg,"elevator") == 0) {
@@ -621,6 +624,7 @@ int maneuver_control_main(int argc, char *argv[])
 				surface_update = true;
 			}else {
 				control_surface = 0;
+                PX4_ERR("Control surface: not recognized");
 			}
 			break;
 
@@ -628,11 +632,13 @@ int maneuver_control_main(int argc, char *argv[])
 			if (px4_get_parameter_value(myoptarg, maneuver_seconds) != 0) {
 				PX4_ERR("CLI argument parsing for maneuver duration failed");
 				return 1;
-			} else {
+			} else if (maneuver_seconds > 0 && maneuver_seconds < 30){
 				PX4_INFO("Maneuver duration:  %d seconds", maneuver_seconds);
 				duration_update = true;
-			}
-			break;
+			} else {
+                PX4_ERR("Maneuver duration: out of bounds");
+            }
+            break;
 
 		case 'm':
 			if(strcmp(myoptarg, "doublet") == 0) {
