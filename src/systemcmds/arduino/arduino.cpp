@@ -9,6 +9,7 @@
 
 #include <px4_config.h>
 #include <px4_getopt.h>
+#include <px4_posix.h>
 #include <px4_defines.h>
 #include <px4_log.h>
 #include <px4_module.h>
@@ -33,12 +34,13 @@
 #include <parameters/param.h>
 
 #include "arduino_params.c"
+#include "drivers/drv_pwm_output.h"
 
 // PWM output for each command
-#define SLOW_MODE -0.9
-#define FAST_MODE 0.1
-#define SLAVE_RESET 0.5
-#define GENERAL_RESET 0.95
+#define SLOW_MODE -0.8
+#define FAST_MODE -0.3
+#define SLAVE_RESET 0.35
+#define GENERAL_RESET 0.85
 
 static void	usage(const char *reason);
 __BEGIN_DECLS
@@ -62,6 +64,7 @@ usage(const char *reason)
 
 	PRINT_MODULE_USAGE_NAME("Arduino", "system command");
     PRINT_MODULE_USAGE_COMMAND_DESCR("send", "Sends the command selected with -c flag");
+    PRINT_MODULE_USAGE_COMMAND_DESCR("info", "Outputs the current PWM value sent");
     PRINT_MODULE_USAGE_PARAM_COMMENT("Flags:");
     PRINT_MODULE_USAGE_PARAM_FLAG('c', "PWM command: SLOW_MODE/FAST_MODE/SLAVE_RESET/GENERAL_RESET",true);
     PRINT_MODULE_USAGE_PARAM_COMMENT("\t\t.-SLOW_MODE: lowers Arduino sampling rate to allow comms with ground station");
@@ -116,12 +119,38 @@ arduino_main(int argc, char *argv[])
 		}
 	}
 
-    if (command_recvd > 0){
-	    PX4_INFO("PWM value = %1.1f",(double)pwm_command);
-        param_set(param_find("ARDUINO_PWM"), &pwm_command);
-	    PX4_INFO("Command sent.");
+    if(myoptind >= argc) {
+        usage(nullptr);
+        return 1;
+    }
+
+    const char *command = argv[myoptind];
+
+    if(!strcmp(command,"send")){
+
+        if (command_recvd > 0){
+            PX4_INFO("PWM value = %1.1f",(double)pwm_command);
+            param_set(param_find("ARDUINO_PWM"), &pwm_command);
+            PX4_INFO("Command sent.");
+        }
+
+    } else if(!strcmp(command, "info")){
+        const char *dev = "/dev/pwm_output1";
+        int fd = px4_open(dev,0);
+        int ret;
+        servo_position_t arduino_pwm_value;
+        int arduino_ch = 0;
+        param_get(param_find("ARDUINO_AUX_CH"), &arduino_ch);
+        arduino_ch --; // Subtract one (index starts at 0)
+        ret = px4_ioctl(fd, PWM_SERVO_GET(arduino_ch),(unsigned long) &arduino_pwm_value);
+        if (ret != OK){
+            PX4_ERR("Error getting PWM values");
+        } else {
+            PX4_INFO("Current PWM value = %u us", arduino_pwm_value);
+        }
+    } else {
+        PX4_ERR("Command not recognized");
     }
 
     return 0;
-
 }
