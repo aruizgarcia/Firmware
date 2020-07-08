@@ -2251,3 +2251,39 @@ PARAM_DEFINE_FLOAT(RC_FLT_SMP_RATE, 50.0f);
  * @group Radio Calibration
  */
 PARAM_DEFINE_FLOAT(RC_FLT_CUTOFF, 10.0f);
+
+/**
+ * Throttle input threshold to activate/deactivate the parking brakes
+ *
+ *
+ *
+ * @min 0
+ * @max 0.5
+ * @group Radio Calibration
+ */
+PARAM_DEFINE_FLOAT(PARK_BRAKES_THR, 0.1f);
+
+/**
+ * Brakes level to be set if throttle input < threshold
+ *
+ *
+ *
+ * @min 0
+ * @max 0.5
+ * @group Radio Calibration
+ */
+PARAM_DEFINE_FLOAT(PARK_BRAKES_LVL, 0.2f);
+
+
+/**
+ * Maximum value for the park brakes
+ *
+ *
+ *
+ * @min 0
+ * @max 0.5
+ * @group Radio Calibration
+ */
+PARAM_DEFINE_FLOAT(PARK_BRAKES_MAX, 0.2f);
+
+

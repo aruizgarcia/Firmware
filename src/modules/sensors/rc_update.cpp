@@ -405,6 +405,26 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
                }
             }
 
+            // Edit: Alberto Ruiz García
+            // Applies 20% brakes when the throttle is zero to help the
+            // pilot during ground operations
+            float parking_brakes_throttle_threshold = 0.0f;
+            float parking_brakes_level = 0.0f;
+            float parking_brakes_max = 0.0f;
+
+            param_get (param_find("PARK_BRAKES_THR"), &parking_brakes_throttle_threshold);
+            param_get (param_find("PARK_BRAKES_LVL"), &parking_brakes_level);
+            param_get (param_find("PARK_BRAKES_MAX"), &parking_brakes_max);
+
+            parking_brakes_level = math::constrain(parking_brakes_level, 0.0f, parking_brakes_max);
+            parking_brakes_throttle_threshold = math::constrain(parking_brakes_throttle_threshold, 0.0f, 0.15f);
+
+            if ( manual.z < parking_brakes_throttle_threshold && arduino_channel != 1 && manual.aux1 < parking_brakes_level){
+                manual.aux1 = parking_brakes_level; // Brakes channel = AUX1
+            }
+
+            
+
             /* filter controls */
 			manual.y = math::constrain(_filter_roll.apply(manual.y), -1.f, 1.f);
 			manual.x = math::constrain(_filter_pitch.apply(manual.x), -1.f, 1.f);
@@ -467,7 +487,14 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
 			manual.man_switch = get_rc_sw2pos_position(rc_channels_s::RC_CHANNELS_FUNCTION_MAN,
 					    _parameters.rc_man_th, _parameters.rc_man_inv);
 
-			/* publish manual_control_setpoint topic */
+            // Edit: Alberto Ruiz García
+            // Forbids the gear retraction if the arming switch is off
+            float gear_down_command = 1.0f;
+            if (manual.arm_switch == manual_control_setpoint_s::SWITCH_POS_OFF){
+                manual.aux2 = gear_down_command;
+            }
+
+            /* publish manual_control_setpoint topic */
 			orb_publish_auto(ORB_ID(manual_control_setpoint), &_manual_control_pub, &manual, &instance,
 					 ORB_PRIO_HIGH);
 
