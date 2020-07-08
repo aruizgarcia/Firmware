@@ -825,6 +825,11 @@ int maneuver_control_main(int argc, char *argv[])
     	PX4_INFO("Safety -> OFF");
     	maneuver_controller::control_ptr->set_safety_pc(PC_SAFETY_OFF);
 
+        // We do not need the TX safety, disable every time we disable pc
+        // safety but leave it for the future
+        PX4_INFO("TX Safety -> OFF");
+        maneuver_controller::control_ptr->set_safety_tx(TX_SAFETY_OFF);
+
     } else if(!strcmp(command,"pilot_safety_on")){
            if (maneuver_controller::control_ptr == nullptr) {
 	        PX4_WARN("not running");
