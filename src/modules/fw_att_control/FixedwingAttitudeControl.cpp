@@ -323,13 +323,14 @@ FixedwingAttitudeControl::vehicle_manual_poll()
 
 				if (_vcontrol_mode.flag_control_attitude_enabled) {
 					// STABILIZED mode generate the attitude setpoint from manual user inputs
-					_att_sp.timestamp = hrt_absolute_time();
+
+                    _att_sp.timestamp = hrt_absolute_time();
 					_att_sp.roll_body = _manual.y * _parameters.man_roll_max + _parameters.rollsp_offset_rad;
 					_att_sp.roll_body = math::constrain(_att_sp.roll_body, -_parameters.man_roll_max, _parameters.man_roll_max);
 					_att_sp.pitch_body = -_manual.x * _parameters.man_pitch_max + _parameters.pitchsp_offset_rad;
 					_att_sp.pitch_body = math::constrain(_att_sp.pitch_body, -_parameters.man_pitch_max, _parameters.man_pitch_max);
 					_att_sp.yaw_body = 0.0f;
-					_att_sp.thrust_body[0] = _manual.z;
+					_att_sp.thrust_body[0] = _manual.z; 
 
 					Quatf q(Eulerf(_att_sp.roll_body, _att_sp.pitch_body, _att_sp.yaw_body));
 					q.copyTo(_att_sp.q_d);
@@ -502,7 +503,7 @@ float FixedwingAttitudeControl::get_airspeed_and_update_scaling()
 	 *
 	 * Forcing the scaling to this value allows reasonable handheld tests.
 	 */
-	const float airspeed_constrained = math::constrain(airspeed, _parameters.airspeed_min, _parameters.airspeed_max);
+	const float airspeed_constrained = math::constrain(airspeed, _parameters.airspeed_min, _parameters.airspeed_max); 
 	_airspeed_scaling = _parameters.airspeed_trim / airspeed_constrained;
 
 
@@ -515,8 +516,9 @@ void FixedwingAttitudeControl::run()
 	//px4_pollfd_struct_t fds[2];
 
 	// EDIT: Alberto Ruiz Garcia (automated maneuvers)
-	static int32_t maneuver_control_flag; // Flag to enable/disable actuator publications
-	// Wake up source
+	static int32_t maneuver_control_enabled; // Flag to enable/disable actuator publications
+
+    // Wake up source
 	struct pollfd fds[2] = {};
 
 	/* Setup of loop */
@@ -561,10 +563,12 @@ void FixedwingAttitudeControl::run()
 		// EDIT: Alberto Ruiz Garcia (automated maneuvers)
 		if (fds[1].revents & POLLIN){ // Get value from maneuver control flag
 			// Get only MAN_CTRL_FLAG for a quicker response and to let fw_att_control 
-			// handle its own parameters (don't clear the update flag) 
-			param_get(param_find("MAN_CTRL_FLAG"),&maneuver_control_flag);
+			// handle its own parameters (don't clear the update flag)
+			param_get(param_find("MAN_CTRL_FLAG"),&maneuver_control_enabled);
 			//PX4_INFO("Maneuver flag updated!");
-		}
+		    param_get(param_find("YAW_DAMP_FLAG"), &_yaw_damper_enabled);
+            //PX4_INFO("Yaw damper flag updated!");
+        }
 
 		/* only run controller if attitude changed */
 		if (fds[0].revents & POLLIN) {
@@ -635,7 +639,21 @@ void FixedwingAttitudeControl::run()
 			vehicle_status_poll();
 			vehicle_land_detected_poll();
 
-			// the position controller will not emit attitude setpoints in some modes
+            // Edited by Alberto Ruiz Garcia: yaw damper implementation
+            if(_yaw_damper_enabled)
+            {
+            // Measured pitch and roll are fed to the controller to
+            // keep current turn radius with no sideslip, but the
+            // output of the controller is only used for the yaw
+            // axis
+                _att_sp.timestamp = hrt_absolute_time();
+                _att_sp.roll_body = euler_angles.phi();
+                _att_sp.pitch_body = euler_angles.theta();
+                _att_sp.yaw_body = 0.0f;
+                _att_sp.thrust_body[0] = _manual.z;
+            }
+
+            // the position controller will not emit attitude setpoints in some modes
 			// we need to make sure that this flag is reset
 			_att_sp.fw_control_yaw = _att_sp.fw_control_yaw && _vcontrol_mode.flag_control_auto_enabled;
 
@@ -784,6 +802,12 @@ void FixedwingAttitudeControl::run()
 						float pitch_u = _pitch_ctrl.control_euler_rate(control_input);
 						_actuators.control[actuator_controls_s::INDEX_PITCH] = (PX4_ISFINITE(pitch_u)) ? pitch_u + trim_pitch : trim_pitch;
 
+                        if (_yaw_damper_enabled)
+                        {
+                            _actuators.control[actuator_controls_s::INDEX_PITCH] = -_manual.x + trim_pitch;
+                            _actuators.control[actuator_controls_s::INDEX_ROLL] = -_manual.y + trim_roll;
+                        }
+
 						if (!PX4_ISFINITE(pitch_u)) {
 							_pitch_ctrl.reset_integrator();
 							perf_count(_nonfinite_output_perf);
@@ -901,9 +925,9 @@ void FixedwingAttitudeControl::run()
 			_actuators.control[5] = _manual.aux1;
 			_actuators.control[actuator_controls_s::INDEX_AIRBRAKES] = _flaperons_applied;
 			// FIXME: this should use _vcontrol_mode.landing_gear_pos in the future
-			
-			// _actuators.control[7] = _manual.aux3; 
-			
+
+        	// _actuators.control[7] = _manual.aux3;
+
 			/* lazily publish the setpoint only once available */
 			_actuators.timestamp = hrt_absolute_time();
 			_actuators.timestamp_sample = _att.timestamp;
@@ -913,12 +937,12 @@ void FixedwingAttitudeControl::run()
 			/* Only publish if any of the proper modes are enabled */
 			if ((_vcontrol_mode.flag_control_rates_enabled ||
 			    _vcontrol_mode.flag_control_attitude_enabled ||
-			    _vcontrol_mode.flag_control_manual_enabled) && 
-			    maneuver_control_flag == 0) {
+			    _vcontrol_mode.flag_control_manual_enabled) &&
+			    maneuver_control_enabled == 0) {
 				/* publish the actuator controls */
-				
+
 				// EDIT: Alberto Ruiz Garcia (automated maneuvers)
-				// If the maneuver controller is running, maneuver_control_flag > 0 
+				// If the maneuver controller is running, maneuver_control_enabled > 0 
 				// which disables actuator publications from this module
 				if (_actuators_0_pub != nullptr) {
 					orb_publish(_actuators_id, _actuators_0_pub, &_actuators);

@@ -270,6 +270,11 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
 			/* signal is lost or no enough channels */
 			signal_lost = true;
 
+            // Edited by Alberto Ruiz Garcia
+            // Disable yaw damper when signal is lost
+            int32_t disable_yaw_damper = 0;
+            param_set(param_find("YAW_DAMP_FLAG"), &disable_yaw_damper);
+
 		} else {
 			/* signal looks good */
 			signal_lost = false;
@@ -406,7 +411,7 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
             }
 
             // Edit: Alberto Ruiz García
-            // Applies 20% brakes when the throttle is zero to help the
+            // Applies some brakes when the throttle is zero to help the
             // pilot during ground operations
             float parking_brakes_throttle_threshold = 0.0f;
             float parking_brakes_level = 0.0f;
@@ -423,7 +428,7 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
                 manual.aux1 = parking_brakes_level; // Brakes channel = AUX1
             }
 
-            
+
 
             /* filter controls */
 			manual.y = math::constrain(_filter_roll.apply(manual.y), -1.f, 1.f);
@@ -489,8 +494,10 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
 
             // Edit: Alberto Ruiz García
             // Forbids the gear retraction if the arming switch is off
+            int gear_safety = 1;
+            param_get (param_find("GEAR_SAFETY"), &gear_safety);
             float gear_down_command = 1.0f;
-            if (manual.arm_switch == manual_control_setpoint_s::SWITCH_POS_OFF){
+            if (manual.arm_switch == manual_control_setpoint_s::SWITCH_POS_OFF && gear_safety > 0){
                 manual.aux2 = gear_down_command;
             }
 

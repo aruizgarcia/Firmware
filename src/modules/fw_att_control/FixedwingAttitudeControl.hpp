@@ -143,6 +143,9 @@ private:
 
 	bool _is_tailsitter{false};
 
+    // Edited by Alberto Ruiz Garcia (yaw damper)
+    int32_t _yaw_damper_enabled{false}; 
+
 	struct {
 		float p_tc;
 		float p_p;

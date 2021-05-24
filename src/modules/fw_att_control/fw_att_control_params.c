@@ -750,3 +750,17 @@ PARAM_DEFINE_FLOAT(FW_DTRIM_R_FLPS, 0.0f);
  * @increment 0.01
  */
 PARAM_DEFINE_FLOAT(FW_DTRIM_P_FLPS, 0.0f);
+
+/**
+ * Flag to enable the yaw damper (inside stabilized mode)
+ *
+ * It disables normal stabilized mode and feeds the current roll and pitch
+ * measurements to the yaw controller to get a coordinated turn.
+ *
+ * @group FW Attitude Control
+ * @min 0
+ * @max 1
+ */
+PARAM_DEFINE_INT32(YAW_DAMP_FLAG, 0);
+
+
