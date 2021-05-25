@@ -23,11 +23,11 @@
 	url = https://github.com/PX4/sitl_gazebo
     branch = master
     ignore = dirty
-[submodule "src/lib/matrix"]
-	path = src/lib/matrix
-    url = https://github.com/PX4/Matrix.git
+#[submodule "src/lib/matrix"]
+#	path = src/lib/matrix
+ #   url = https://github.com/PX4/Matrix.git
     #url = https://github.com/aruizgarcia/Firmware/src/lib/matrix.git
-    branch = stable
+  #  branch = stable
 [submodule "src/lib/DriverFramework"]
 	path = src/lib/DriverFramework
 	url = https://github.com/PX4/DriverFramework.git
