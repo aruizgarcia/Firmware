@@ -387,16 +387,7 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
 			manual.aux5 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_AUX_5, -1.0, 1.0);
 			manual.aux6 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_AUX_6, -1.0, 1.0);
 
-            float param_1 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_PARAM_1, 0.0, 1.0);
-            float param_2 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_PARAM_2, 0.0, 1.0);
-            float yaw_feedforward_gain = 0.0f;
-            float yaw_rate_gain = 0.0f;
-            yaw_rate_gain = 0.005 + 0.5*sin(M_PI_2 * (double)param_1);
-            yaw_feedforward_gain = 0 + 1.2*sin(M_PI_2 * (double)param_2);
-            param_set(param_find("FW_YR_P"), &yaw_rate_gain);
-            param_set(param_find("FW_YR_FF"), &yaw_feedforward_gain);
-
-			// Edit: Alberto Ruiz Garcia
+            			// Edit: Alberto Ruiz Garcia
             // Overrides one of the auxiliary channels (defined with a
             // parameter in the airframe file) to send arduino commands through PWM outputs
 			// If no channel was selected in the airframe file it defaults to
@@ -534,7 +525,17 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
 
 			/* Update parameters from RC Channels (tuning with RC) if activated */
 			if (hrt_elapsed_time(&_last_rc_to_param_map_time) > 1e6) {
-				set_params_from_rc(parameter_handles);
+				// Edited by Alberto Ruiz Garcia: map to params
+                float param_1 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_PARAM_1, 0.0, 1.0);
+                float param_2 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_PARAM_2, 0.0, 1.0);
+                float yaw_feedforward_gain = 0.0f;
+                float yaw_rate_gain = 0.0f;
+                yaw_rate_gain = 0.005 + 0.5*sin(M_PI_2 * (double)param_1);
+                yaw_feedforward_gain = 1.2*sin(M_PI_2 * (double)param_2);
+                param_set(param_find("FW_YR_P"), &yaw_rate_gain);
+                param_set(param_find("FW_YR_FF"), &yaw_feedforward_gain);
+
+                set_params_from_rc(parameter_handles);
 				_last_rc_to_param_map_time = hrt_absolute_time();
 			}
 		}

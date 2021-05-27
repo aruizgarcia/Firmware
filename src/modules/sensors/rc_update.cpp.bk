@@ -270,6 +270,11 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
 			/* signal is lost or no enough channels */
 			signal_lost = true;
 
+            // Edited by Alberto Ruiz Garcia
+            // Disable yaw damper when signal is lost
+            int32_t disable_yaw_damper = 0;
+            param_set(param_find("YAW_DAMP_FLAG"), &disable_yaw_damper);
+
 		} else {
 			/* signal looks good */
 			signal_lost = false;
@@ -382,7 +387,60 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
 			manual.aux5 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_AUX_5, -1.0, 1.0);
 			manual.aux6 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_AUX_6, -1.0, 1.0);
 
-			/* filter controls */
+            // Edited by Alberto Ruiz Garcia: map to params
+            float param_1 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_PARAM_1, 0.0, 1.0);
+            float param_2 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_PARAM_2, 0.0, 1.0);
+            float yaw_feedforward_gain = 0.0f;
+            float yaw_rate_gain = 0.0f;
+            yaw_rate_gain = 0.005 + 0.5*sin(M_PI_2 * (double)param_1);
+            yaw_feedforward_gain = 1.2*sin(M_PI_2 * (double)param_2);
+            param_set(param_find("FW_YR_P"), &yaw_rate_gain);
+            param_set(param_find("FW_YR_FF"), &yaw_feedforward_gain);
+
+			// Edit: Alberto Ruiz Garcia
+            // Overrides one of the auxiliary channels (defined with a
+            // parameter in the airframe file) to send arduino commands through PWM outputs
+			// If no channel was selected in the airframe file it defaults to
+            // zero and does nothiing
+            int arduino_channel = 0;
+            param_get (param_find("ARDUINO_AUX_CH"), &arduino_channel);
+            if (arduino_channel > 0){
+                float pwm_command = 0.0f;
+			    param_get (param_find("ARDUINO_PWM"),&pwm_command);
+                switch(arduino_channel){
+                    case(1):
+                        if (pwm_command < 1.0f && pwm_command > -1.0f) manual.aux1 = pwm_command;
+                        break;
+                    case(2):
+                        if (pwm_command < 1.0f && pwm_command > -1.0f) manual.aux2 = pwm_command;
+                        break;
+                    case(3):
+                        if (pwm_command < 1.0f && pwm_command > -1.0f) manual.aux3 = pwm_command;
+                        break;
+               }
+            }
+
+            // Edit: Alberto Ruiz García
+            // Applies some brakes when the throttle is zero to help the
+            // pilot during ground operations
+            float parking_brakes_throttle_threshold = 0.0f;
+            float parking_brakes_level = 0.0f;
+            float parking_brakes_max = 0.0f;
+
+            param_get (param_find("PARK_BRAKES_THR"), &parking_brakes_throttle_threshold);
+            param_get (param_find("PARK_BRAKES_LVL"), &parking_brakes_level);
+            param_get (param_find("PARK_BRAKES_MAX"), &parking_brakes_max);
+
+            parking_brakes_level = math::constrain(parking_brakes_level, 0.0f, parking_brakes_max);
+            parking_brakes_throttle_threshold = math::constrain(parking_brakes_throttle_threshold, 0.0f, 0.15f);
+
+            if ( manual.z < parking_brakes_throttle_threshold && arduino_channel != 1 && manual.aux1 < parking_brakes_level){
+                manual.aux1 = parking_brakes_level; // Brakes channel = AUX1
+            }
+
+
+
+            /* filter controls */
 			manual.y = math::constrain(_filter_roll.apply(manual.y), -1.f, 1.f);
 			manual.x = math::constrain(_filter_pitch.apply(manual.x), -1.f, 1.f);
 			manual.r = math::constrain(_filter_yaw.apply(manual.r), -1.f, 1.f);
@@ -444,7 +502,16 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
 			manual.man_switch = get_rc_sw2pos_position(rc_channels_s::RC_CHANNELS_FUNCTION_MAN,
 					    _parameters.rc_man_th, _parameters.rc_man_inv);
 
-			/* publish manual_control_setpoint topic */
+            // Edit: Alberto Ruiz García
+            // Forbids the gear retraction if the arming switch is off
+            int gear_safety = 1;
+            param_get (param_find("GEAR_SAFETY"), &gear_safety);
+            float gear_down_command = 1.0f;
+            if (manual.arm_switch == manual_control_setpoint_s::SWITCH_POS_OFF && gear_safety > 0){
+                manual.aux2 = gear_down_command;
+            }
+
+            /* publish manual_control_setpoint topic */
 			orb_publish_auto(ORB_ID(manual_control_setpoint), &_manual_control_pub, &manual, &instance,
 					 ORB_PRIO_HIGH);
 
