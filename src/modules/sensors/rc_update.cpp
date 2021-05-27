@@ -387,13 +387,15 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
 			manual.aux5 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_AUX_5, -1.0, 1.0);
 			manual.aux6 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_AUX_6, -1.0, 1.0);
 
-            // Alberto Ruiz Garcia
-            PX4_INFO("%d%1.3f",1,(double)manual.aux1);
-            PX4_INFO("%d%1.3f",2,(double)manual.aux2);
-            PX4_INFO("%d%1.3f",3,(double)manual.aux3);
-            PX4_INFO("%d%1.3f",4,(double)manual.aux4);
-            PX4_INFO("%d%1.3f",5,(double)manual.aux5);
-            PX4_INFO("%d%1.3f",6,(double)manual.aux6);
+            float knob_1 = (manual.aux1 + 1.0f)/2.0f;
+            float knob_2 = (manual.aux2 + 1.0f)/2.0f;
+            float yaw_feedforward_gain = 0.0f;
+            float yaw_rate_gain = 0.0f;
+            yaw_rate_gain = 0.005 + 0.5*sin(M_PI_2 * (double)knob_1);
+            yaw_feedforward_gain = 0 + 1.2*sin(M_PI_2 * (double)knob_2);
+            param_set(param_find("FW_YR_P"), &yaw_rate_gain);
+            param_set(param_find("FW_YR_FF"), &yaw_feedforward_gain);
+
 			// Edit: Alberto Ruiz Garcia
             // Overrides one of the auxiliary channels (defined with a
             // parameter in the airframe file) to send arduino commands through PWM outputs
