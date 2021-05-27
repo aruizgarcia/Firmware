@@ -640,8 +640,7 @@ void FixedwingAttitudeControl::run()
 			vehicle_land_detected_poll();
 
             // Edited by Alberto Ruiz Garcia: yaw damper implementation
-            if(_yaw_damper_enabled)
-            {
+            if(_yaw_damper_enabled) {
             // Measured pitch and roll are fed to the controller to
             // keep current turn radius with no sideslip, but the
             // output of the controller is only used for the yaw
@@ -651,6 +650,14 @@ void FixedwingAttitudeControl::run()
                 _att_sp.pitch_body = euler_angles.theta();
                 _att_sp.yaw_body = 0.0f;
                 _att_sp.thrust_body[0] = _manual.z;
+
+                if(_yaw_damper_enabled){
+                    _yaw_damper_gain = 0.5 * (1 + cos(_manual.r * float(M_PI)));
+                    _yaw_damper_gain = math::constrain(_yaw_damper_gain,0.0f,1.0f);
+                } else{
+                    _yaw_damper_gain = 1.0f;
+                }
+
             }
 
             // the position controller will not emit attitude setpoints in some modes
@@ -802,6 +809,9 @@ void FixedwingAttitudeControl::run()
 						float pitch_u = _pitch_ctrl.control_euler_rate(control_input);
 						_actuators.control[actuator_controls_s::INDEX_PITCH] = (PX4_ISFINITE(pitch_u)) ? pitch_u + trim_pitch : trim_pitch;
 
+                        // Edited by Alberto Ruiz Garcia
+                        // If _yaw_damper_enabled, set the roll and pitch
+                        // controls from manual inputs
                         if (_yaw_damper_enabled)
                         {
                             _actuators.control[actuator_controls_s::INDEX_PITCH] = -_manual.x + trim_pitch;
@@ -822,7 +832,12 @@ void FixedwingAttitudeControl::run()
 							yaw_u = _yaw_ctrl.control_euler_rate(control_input);
 						}
 
-						_actuators.control[actuator_controls_s::INDEX_YAW] = (PX4_ISFINITE(yaw_u)) ? yaw_u + trim_yaw : trim_yaw;
+                        // Edited by Alberto Ruiz Garcia
+                        // Scale controller yaw input by a gain dependent on
+                        // the yaw pilot input (decreasing with pilot input)
+                        yaw_u *= _yaw_damper_gain;
+
+                        _actuators.control[actuator_controls_s::INDEX_YAW] = (PX4_ISFINITE(yaw_u)) ? yaw_u + trim_yaw : trim_yaw;
 
 						/* add in manual rudder control in manual modes */
 						if (_vcontrol_mode.flag_control_manual_enabled) {
@@ -918,8 +933,15 @@ void FixedwingAttitudeControl::run()
 
 			// Add feed-forward from roll control output to yaw control output
 			// This can be used to counteract the adverse yaw effect when rolling the plane
-			_actuators.control[actuator_controls_s::INDEX_YAW] += _parameters.roll_to_yaw_ff * math::constrain(
+			//_actuators.control[actuator_controls_s::INDEX_YAW] += _parameters.roll_to_yaw_ff * math::constrain(
+			//			_actuators.control[actuator_controls_s::INDEX_ROLL], -1.0f, 1.0f);
+
+            // Edited by Alberto Ruiz Garcia
+            // Multiply feed-forward constant by _yaw_damper_gain
+            _actuators.control[actuator_controls_s::INDEX_YAW] +=
+                _yaw_damper_gain * _parameters.roll_to_yaw_ff * math::constrain(
 						_actuators.control[actuator_controls_s::INDEX_ROLL], -1.0f, 1.0f);
+
 
 			_actuators.control[actuator_controls_s::INDEX_FLAPS] = _flaps_applied;
 			_actuators.control[5] = _manual.aux1;
