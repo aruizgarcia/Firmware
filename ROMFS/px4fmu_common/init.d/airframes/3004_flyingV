@@ -173,19 +173,24 @@ then
 	param set RC_MAP_AUX2 5 	# Gear retraction switch
 	param set RC_MAP_AUX3 8 	# Trigger switch to Arduino/Aeroprobe
 	param set RC_MAP_FLAPS 10	# Airbrakes dial (mapped to flaps channel)
-	#param set RC_MAP_PARAM1 11	# Safety switch for automatic maneuvers
+
+    # MAP PARAMETERS TO RC INPUTS
+    param set RC_MAP_PARAM1 11	# Knob to tune the yaw damper rate gain
+    param set RC_MAP_PARAM2 12  # Knob to tune the yaw damper feedfoward gain
 
     # SELECT ARDUINO CHANNEL (AUX1, AUX2, or AUX3)
     param set ARDUINO_AUX_CH 3 # Auxiliary channel for Arduino
 
     # DISABLE UNUSED CHANNELS
-    param set RC_MAP_MODE_SW 0	# do not use 
-	param set RC_MAP_PARAM2 0	# Do we need to set any parameter with a dial? 
+    param set RC_MAP_MODE_SW 0	# do not use
 
 	# FLIGHT MODES
-	param set COM_FLTMODE1 0 	# Manual 
-	param set COM_FLTMODE4 8 	# Stabilized
-	param set COM_FLTMODE6 5 	# Return 
+	param set COM_FLTMODE1 0 	# Manual
+	param set COM_FLTMODE4 8 	# Stabilized/Yaw damper
+	param set COM_FLTMODE6 5 	# Return
+
+    # YAW DAMPER
+    param set YAW_DAMP_FLAG 1  # 0 = disabled, 1 = enabled (in stabilized mode)
 
 	# BATTERY ESTIMATOR
 	param set BAT_N_CELLS 3 		# 3S (11.1 V)
