@@ -525,15 +525,25 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
 
 			/* Update parameters from RC Channels (tuning with RC) if activated */
 			if (hrt_elapsed_time(&_last_rc_to_param_map_time) > 1e6) {
-				// Edited by Alberto Ruiz Garcia: map to params
+				// Edited by Alberto Ruiz Garcia: map to params, sinusoidal gain
                 float param_1 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_PARAM_1, 0.0, 1.0);
                 float param_2 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_PARAM_2, 0.0, 1.0);
-                float yaw_feedforward_gain = 0.0f;
-                float yaw_rate_gain = 0.0f;
-                yaw_rate_gain = 0.005 + 0.5*sin(M_PI_2 * (double)param_1);
-                yaw_feedforward_gain = 1.2*sin(M_PI_2 * (double)param_2);
-                param_set(param_find("FW_YR_P"), &yaw_rate_gain);
-                param_set(param_find("FW_YR_FF"), &yaw_feedforward_gain);
+                // Compute gains
+                float yaw_rate_gain_new = 0.005 + 0.5*sin(M_PI_2 * (double)param_1);
+                float yaw_feedforward_gain_new = 1.2*sin(M_PI_2 * (double)param_2);
+
+                // Set parameters
+                if (yaw_rate_gain_new > _yaw_rate_gain + _yaw_rate_gain_sensitivity ||
+                        yaw_rate_gain_new < _yaw_rate_gain -_yaw_rate_gain_sensitivity){
+                    _yaw_rate_gain = yaw_rate_gain_new;
+                    param_set(param_find("FW_YR_P"), &_yaw_rate_gain);
+                }
+
+                if (yaw_feedforward_gain_new > _yaw_feedforward_gain + _yaw_feedforward_gain_sensitivity ||
+                        yaw_feedforward_gain_new < _yaw_feedforward_gain - _yaw_feedforward_gain_sensitivity){
+                   _yaw_feedforward_gain = yaw_feedforward_gain_new;
+                   param_set(param_find("FW_YR_FF"), &_yaw_feedforward_gain);
+                }
 
                 set_params_from_rc(parameter_handles);
 				_last_rc_to_param_map_time = hrt_absolute_time();
