@@ -161,6 +161,9 @@ then
     # AUTOMATED MANEUVER SETTINGS 
     param set MAN_TX_ABORT 0.1
 
+    # YAW DAMPER
+    param set YAW_DAMP_FLAG 1
+
 	# AIRFRAME
 	#param set CAL_MAG0_ROT 8
 	# CALIBRATION PARAMETERS (TO BE REMOVED/CHANGED)
@@ -169,7 +172,7 @@ then
 	# param set CAL_MAG1_EN 0
 	# param set COM_ARM_MAG 0.5
 	# param set CBRK_GPSFAIL 240024
-	# param set CBRK_IO_SAFETY 22027
+	param set CBRK_IO_SAFETY 22027
 	# param set CBRK_AIRSPD_CHK 162128
 	# param set CBRK_SUPPLY_CHK 894281
 	# param set CBRK_FLIGHTTERM 12121
