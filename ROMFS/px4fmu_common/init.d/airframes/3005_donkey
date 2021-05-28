@@ -140,11 +140,11 @@ then
 	param set RC_MAP_FLTMODE 5 	# Flight mode switch
 	param set RC_MAP_ARM_SW 6  	# Arming switch
 	#param set RC_MAP_AUX1 7   	# Arduino PWM
-	#param set RC_MAP_PARAM 7	# Safety switch for automatic maneuvers
+	param set RC_MAP_PARAM1 9	# Yaw controller rate gain
+    param set RC_MAP_PARAM2 10  # Yaw controller feedforward gain
 
     # DISABLE UNUSED CHANNELS
     param set RC_MAP_MODE_SW 0	# do not use 
-	param set RC_MAP_PARAM2 0	# Do we need to set any parameter with a dial? 
 
 	# FLIGHT MODES
 	param set COM_FLTMODE1 0 	# Manual 
