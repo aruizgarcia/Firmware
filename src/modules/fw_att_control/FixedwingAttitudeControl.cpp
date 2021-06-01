@@ -121,7 +121,9 @@ FixedwingAttitudeControl::FixedwingAttitudeControl() :
 
 	_parameter_handles.bat_scale_en = param_find("FW_BAT_SCALE_EN");
 	_parameter_handles.airspeed_mode = param_find("FW_ARSP_MODE");
-	
+
+    // Edited by Alberto Ruiz Garcia
+    _parameter_handles.yaw_damper_enabled = param_find("YAW_DAMP_FLAG");
 
 	/* fetch initial parameter values */
 	parameters_update();
@@ -273,6 +275,9 @@ FixedwingAttitudeControl::parameters_update()
 	_wheel_ctrl.set_k_ff(_parameters.w_ff);
 	_wheel_ctrl.set_integrator_max(_parameters.w_integrator_max);
 	_wheel_ctrl.set_max_rate(math::radians(_parameters.w_rmax));
+
+    // Edited by Alberto Ruiz Garcia: initial value for _yaw_damper_enabled
+    param_get(_parameter_handles.yaw_damper_enabled, &_parameters.yaw_damper_enabled);
 
 	return PX4_OK;
 }
@@ -540,6 +545,7 @@ void FixedwingAttitudeControl::run()
 
 			/* update parameters from storage */
 			parameters_update();
+            _yaw_damper_enabled = _parameters.yaw_damper_enabled;
 		}
 
 		/* wait for up to 500ms for data */
@@ -562,7 +568,7 @@ void FixedwingAttitudeControl::run()
 
 		// EDIT: Alberto Ruiz Garcia (automated maneuvers)
 		if (fds[1].revents & POLLIN){ // Get value from maneuver control flag
-			// Get only MAN_CTRL_FLAG for a quicker response and to let fw_att_control 
+			// Get only required params for a quicker response and to let fw_att_control 
 			// handle its own parameters (don't clear the update flag)
 			param_get(param_find("MAN_CTRL_FLAG"),&maneuver_control_enabled);
 			//PX4_INFO("Maneuver flag updated!");

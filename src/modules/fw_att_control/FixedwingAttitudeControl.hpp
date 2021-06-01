@@ -213,6 +213,10 @@ private:
 
 		int32_t bat_scale_en;			/**< Battery scaling enabled */
 		bool airspeed_disabled;
+
+        // Edited by Alberto Ruiz Garcia: yaw damper
+        bool yaw_damper_enabled;
+
 	} _parameters{};			/**< local copies of interesting parameters */
 
 	struct {
@@ -281,6 +285,8 @@ private:
 		param_t bat_scale_en;
 		param_t airspeed_mode;
 
+        // Edited by Alberto Ruiz Garcia: yaw damper
+        param_t yaw_damper_enabled;
 
 	} _parameter_handles{};		/**< handles for interesting parameters */
 
