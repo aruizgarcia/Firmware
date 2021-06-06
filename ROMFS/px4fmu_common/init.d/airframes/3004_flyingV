@@ -190,7 +190,11 @@ then
 	param set COM_FLTMODE6 5 	# Return
 
     # YAW DAMPER
-    param set YAW_DAMP_FLAG 1  # 0 = disabled, 1 = enabled (in stabilized mode)
+    param set YAW_DAMP_FLAG 1   # 0 = disabled, 1 = enabled (in stabilized mode)
+    param set FW_AIRSPD_TRIM 30 # Trim airspeed, used for the scaler
+    param set FW_AIRSPD_MIN 25  # Minimum airspeed (should we raise it?)
+    param set FW_AIRSPED_MAX 40 # Should we change the parameter definition to
+    # increase the max airspeed?
 
 	# BATTERY ESTIMATOR
 	param set BAT_N_CELLS 3 		# 3S (11.1 V)
