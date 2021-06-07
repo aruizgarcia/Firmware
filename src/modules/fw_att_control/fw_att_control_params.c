@@ -764,6 +764,20 @@ PARAM_DEFINE_FLOAT(FW_DTRIM_P_FLPS, 0.0f);
 PARAM_DEFINE_INT32(YAW_DAMP_FLAG, 0);
 
 /**
+ * Flag to enable the custom stabilized mode (needs YAW_DAMP_FLAG = 1 and
+ * stabilized mode enabled)
+ *
+ * It scales the pitch and roll controller output with a gain depending on the
+ * pilot input. Manual inputs are added to give the pilot extra authority.
+ *
+ * @group FW Attitude Control
+ * @min 0
+ * @max 1
+ */
+PARAM_DEFINE_INT32(CUSTOM_STAB_MODE, 0);
+
+
+/**
  * Maximum value for the RC tuning of the yaw rate gain
  *
  * It is only used in rc_update.cpp to tune the gain using the transmitter

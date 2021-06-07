@@ -124,6 +124,7 @@ FixedwingAttitudeControl::FixedwingAttitudeControl() :
 
     // Edited by Alberto Ruiz Garcia
     _parameter_handles.yaw_damper_enabled = param_find("YAW_DAMP_FLAG");
+    _parameter_handles.custom_stabilized_mode = param_find("CUSTOM_STAB_MODE");
 
 	/* fetch initial parameter values */
 	parameters_update();
@@ -278,6 +279,7 @@ FixedwingAttitudeControl::parameters_update()
 
     // Edited by Alberto Ruiz Garcia: initial value for _yaw_damper_enabled
     param_get(_parameter_handles.yaw_damper_enabled, &_parameters.yaw_damper_enabled);
+    param_get(_parameter_handles.custom_stabilized_mode, &_parameters.custom_stabilized_mode);
 
 	return PX4_OK;
 }
@@ -546,7 +548,8 @@ void FixedwingAttitudeControl::run()
 			/* update parameters from storage */
 			parameters_update();
             _yaw_damper_enabled = _parameters.yaw_damper_enabled;
-		}
+		    _custom_stabilized_mode = _parameters.custom_stabilized_mode;
+        }
 
 		/* wait for up to 500ms for data */
 		//int pret = px4_poll(&fds[0], (sizeof(fds) / sizeof(fds[0])), 100);
@@ -574,6 +577,7 @@ void FixedwingAttitudeControl::run()
 			//PX4_INFO("Maneuver flag updated!");
 		    param_get(param_find("YAW_DAMP_FLAG"), &_yaw_damper_enabled);
             //PX4_INFO("Yaw damper flag updated!");
+            param_get(param_find("CUSTOM_STAB_MODE"), &_custom_stabilized_mode);
         }
 
 		/* only run controller if attitude changed */
@@ -657,13 +661,19 @@ void FixedwingAttitudeControl::run()
                 _att_sp.yaw_body = 0.0f;
                 _att_sp.thrust_body[0] = _manual.z;
 
-                if(_yaw_damper_enabled){
-                    _yaw_damper_gain = 0.5 * (1 + cos(_manual.r * float(M_PI)));
-                    _yaw_damper_gain = math::constrain(_yaw_damper_gain,0.0f,1.0f);
-                } else{
-                    _yaw_damper_gain = 1.0f;
+                _yaw_damper_gain = 0.5 * (1 + cos(_manual.r * float(M_PI)));
+                _yaw_damper_gain = math::constrain(_yaw_damper_gain,0.0f,1.0f);
+                if(_custom_stabilized_mode){
+                    _custom_roll_gain = 0.5 * (1 + cos(_manual.y * float(M_PI)));
+                    _custom_pitch_gain = 0.5 * (1 + cos(_manual.x * float(M_PI)));
+                } else {
+                    _custom_pitch_gain = 1.0f;
+                    _custom_roll_gain = 1.0f;
                 }
-
+            } else{
+                    _yaw_damper_gain = 1.0f;
+                    _custom_pitch_gain = 1.0f;
+                    _custom_roll_gain = 1.0f;
             }
 
             // the position controller will not emit attitude setpoints in some modes
@@ -816,12 +826,19 @@ void FixedwingAttitudeControl::run()
 						_actuators.control[actuator_controls_s::INDEX_PITCH] = (PX4_ISFINITE(pitch_u)) ? pitch_u + trim_pitch : trim_pitch;
 
                         // Edited by Alberto Ruiz Garcia
-                        // If _yaw_damper_enabled, set the roll and pitch
-                        // controls from manual inputs
-                        if (_yaw_damper_enabled)
-                        {
-                            _actuators.control[actuator_controls_s::INDEX_PITCH] = -_manual.x + trim_pitch;
-                            _actuators.control[actuator_controls_s::INDEX_ROLL] = _manual.y + trim_roll;
+                        // If _yaw_damper_enabled, run the custom controller instead of the default stabilized mode
+                        if (_yaw_damper_enabled) {
+                            if (!_custom_stabilized_mode) {// If _custom_stabilized_mode is false, the controller will act just as a yaw damper
+                                _actuators.control[actuator_controls_s::INDEX_PITCH] = -_manual.x + trim_pitch;
+                                _actuators.control[actuator_controls_s::INDEX_ROLL] = _manual.y * + trim_roll;
+                            } else { // custom stabilized mode enabled (increased pilot authority)
+                                // Scale controls according to gains
+                                _actuators.control[actuator_controls_s::INDEX_PITCH] *= _custom_pitch_gain;
+                                _actuators.control[actuator_controls_s::INDEX_ROLL] *= _custom_roll_gain;
+                                // Add manual inputs from the pilot
+                                _actuators.control[actuator_controls_s::INDEX_PITCH] += -_manual.x + trim_pitch * (1 - _custom_pitch_gain);
+                                _actuators.control[actuator_controls_s::INDEX_ROLL] += _manual.y + trim_roll * (1 - _custom_roll_gain);
+                            }
                         }
 
 						if (!PX4_ISFINITE(pitch_u)) {

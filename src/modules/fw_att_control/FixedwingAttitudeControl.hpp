@@ -146,7 +146,10 @@ private:
     // Edited by Alberto Ruiz Garcia (yaw damper)
     int32_t _yaw_damper_enabled{false}; // Flag to enable/disable the yaw damper 
     float _yaw_damper_gain{1.0f};   // Additional gain to increase the pilot authority
-    
+    int32_t _custom_stabilized_mode{false}; // Flag to enable/disable the custom stab. mode
+    float _custom_pitch_gain{1.0f}; // Pitch gain for the custom stabilized mode (more pilot authority)
+    float _custom_roll_gain{1.0f}; // Roll gain for the custom stabilized mode (more pilot authority)
+
 	struct {
 		float p_tc;
 		float p_p;
@@ -214,8 +217,9 @@ private:
 		int32_t bat_scale_en;			/**< Battery scaling enabled */
 		bool airspeed_disabled;
 
-        // Edited by Alberto Ruiz Garcia: yaw damper
+        // Edited by Alberto Ruiz Garcia: yaw damper and custom stabilized mode
         bool yaw_damper_enabled;
+        bool custom_stabilized_mode;
 
 	} _parameters{};			/**< local copies of interesting parameters */
 
@@ -285,8 +289,9 @@ private:
 		param_t bat_scale_en;
 		param_t airspeed_mode;
 
-        // Edited by Alberto Ruiz Garcia: yaw damper
+        // Edited by Alberto Ruiz Garcia: yaw damper and custom stabilized mode
         param_t yaw_damper_enabled;
+        param_t custom_stabilized_mode;
 
 	} _parameter_handles{};		/**< handles for interesting parameters */
 
