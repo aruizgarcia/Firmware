@@ -821,7 +821,7 @@ void FixedwingAttitudeControl::run()
                         if (_yaw_damper_enabled)
                         {
                             _actuators.control[actuator_controls_s::INDEX_PITCH] = -_manual.x + trim_pitch;
-                            _actuators.control[actuator_controls_s::INDEX_ROLL] = -_manual.y + trim_roll;
+                            _actuators.control[actuator_controls_s::INDEX_ROLL] = _manual.y + trim_roll;
                         }
 
 						if (!PX4_ISFINITE(pitch_u)) {
