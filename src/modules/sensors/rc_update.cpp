@@ -533,8 +533,8 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
                 float param_1 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_PARAM_1, 0.0, 1.0);
                 float param_2 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_PARAM_2, 0.0, 1.0);
                 // Compute gains
-                float yaw_rate_gain_new = max_rate_gain * sinf((float)M_PI_2 * param_1);
-                float yaw_feedforward_gain_new = max_ff_gain * sinf((float)M_PI_2 * param_2);
+                float yaw_rate_gain_new = (double)max_rate_gain * sin(M_PI_2 * (double)param_1);
+                float yaw_feedforward_gain_new = (double)max_ff_gain * sin(M_PI_2 * (double)param_2);
 
                 // Set parameters
                 if (yaw_rate_gain_new > _yaw_rate_gain + _yaw_rate_gain_sensitivity ||
