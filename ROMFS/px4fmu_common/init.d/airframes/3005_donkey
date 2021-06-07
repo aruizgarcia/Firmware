@@ -152,13 +152,13 @@ then
 	param set COM_FLTMODE6 5 	# Return 
 
 	# BATTERY ESTIMATOR
-	param set BAT_N_CELLS 3 		# 3S (11.1 V)
-	#param set BAT_A_PER_V 65.02386	# Amps-per-volt (Mauch sensor)
-	#param set BAT_V_DIV 19.12569	# Voltage divider (Mauch sensor)
-	param set BAT_V_CHARGED 4.2 	# Full voltage per cell 
-	param set BAT_V_EMPTY 3.2 		# Empty voltage per cell (conservative, 3.0 V real value)
+	param set BAT1_N_CELLS 3 		# 3S (11.1 V)
+	param set BAT1_A_PER_V 36.0	# Amps-per-volt (Mauch sensor)
+	param set BAT1_V_DIV 18.1	# Voltage divider (Mauch sensor)
+	param set BAT1_V_CHARGED 4.2 	# Full voltage per cell
+	param set BAT1_V_EMPTY 3.2 		# Empty voltage per cell (conservative, 3.0 V real value)
 
-    # AUTOMATED MANEUVER SETTINGS 
+    # AUTOMATED MANEUVER SETTINGS
     param set MAN_TX_ABORT 0.1
 
     # YAW DAMPER
