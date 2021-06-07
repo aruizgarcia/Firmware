@@ -763,4 +763,24 @@ PARAM_DEFINE_FLOAT(FW_DTRIM_P_FLPS, 0.0f);
  */
 PARAM_DEFINE_INT32(YAW_DAMP_FLAG, 0);
 
+/**
+ * Maximum value for the RC tuning of the yaw rate gain
+ *
+ * It is only used in rc_update.cpp to tune the gain using the transmitter
+ * @group FW Attitude Control
+ * @min 0
+ * @max 0.5
+ */
+PARAM_DEFINE_FLOAT(FW_YR_PMAX, 0);
+
+/**
+ * Maximum value for the RC tuning of the yaw feedforward gain
+ *
+ * It is only used in rc_update.cpp to tune the gain using the transmitter
+ * @group FW Attitude Control
+ * @min 0
+ * @max 0.5
+ */
+PARAM_DEFINE_FLOAT(FW_YR_FFMAX, 0);
+
 
