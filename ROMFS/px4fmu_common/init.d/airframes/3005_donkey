@@ -163,6 +163,9 @@ then
 
     # YAW DAMPER
     param set YAW_DAMP_FLAG 1
+    param set FW_AIRSPD_TRIM 20
+    param set FW_AIRSPD_MIN 10
+    param set FW_AIRSPD_MAX 30
 
 	# AIRFRAME
 	#param set CAL_MAG0_ROT 8
