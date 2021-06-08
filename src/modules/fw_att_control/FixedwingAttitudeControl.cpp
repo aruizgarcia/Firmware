@@ -126,7 +126,7 @@ FixedwingAttitudeControl::FixedwingAttitudeControl() :
     _parameter_handles.yaw_damper_enabled = param_find("YAW_DAMP_FLAG");
     _parameter_handles.custom_stabilized_mode = param_find("CUSTOM_STAB_MODE");
     _parameter_handles.yaw_stick_constant = param_find("YAW_STICK_CONST");
-    _parameter_handles.pitch_stick_constant = param_find("PITCH_STICK_CONST");
+    _parameter_handles.pitch_stick_constant = param_find("PITCH_STCK_CONST");
     _parameter_handles.roll_stick_constant = param_find("ROLL_STICK_CONST");
 
 	/* fetch initial parameter values */
