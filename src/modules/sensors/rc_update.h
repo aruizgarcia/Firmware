@@ -45,6 +45,8 @@
 #include <mathlib/mathlib.h>
 #include <mathlib/math/filter/LowPassFilter2p.hpp>
 #include <uORB/topics/rc_channels.h>
+#include <math.h>
+#include <float.h>
 
 namespace sensors
 {
