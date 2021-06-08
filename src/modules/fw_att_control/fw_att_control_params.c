@@ -785,7 +785,7 @@ PARAM_DEFINE_INT32(CUSTOM_STAB_MODE, 0);
  * @min 0
  * @max 0.5
  */
-PARAM_DEFINE_FLOAT(FW_YR_PMAX, 0);
+PARAM_DEFINE_FLOAT(FW_YR_PMAX, 0.3);
 
 /**
  * Maximum value for the RC tuning of the yaw feedforward gain
@@ -795,6 +795,40 @@ PARAM_DEFINE_FLOAT(FW_YR_PMAX, 0);
  * @min 0
  * @max 0.5
  */
-PARAM_DEFINE_FLOAT(FW_YR_FFMAX, 0);
+PARAM_DEFINE_FLOAT(FW_YR_FFMAX, 0.5);
+
+
+/**
+ * Value of the controller gain at 50% deflection for the custom stabilized
+ * mode and yaw damper
+ *
+ * @group FW Attitude Control
+ * @min 0
+ * @max 0.5
+ */
+PARAM_DEFINE_FLOAT(YAW_STICK_CONST, 0.5f);
+
+
+/**
+ * Value of the controller gain at 50% deflection for the custom stabilized
+ * mode and yaw damper
+ *
+ * @group FW Attitude Control
+ * @min 0
+ * @max 0.5
+ */
+PARAM_DEFINE_FLOAT(YAW_PITCH_CONST, 0.5f);
+
+
+/**
+ * Value of the controller gain at 50% deflection for the custom stabilized
+ * mode and yaw damper
+ *
+ * @group FW Attitude Control
+ * @min 0
+ * @max 0.5
+ */
+PARAM_DEFINE_FLOAT(YAW_ROLL_CONST, 0.5f);
+
 
 

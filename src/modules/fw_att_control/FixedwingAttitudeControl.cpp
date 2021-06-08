@@ -125,6 +125,9 @@ FixedwingAttitudeControl::FixedwingAttitudeControl() :
     // Edited by Alberto Ruiz Garcia
     _parameter_handles.yaw_damper_enabled = param_find("YAW_DAMP_FLAG");
     _parameter_handles.custom_stabilized_mode = param_find("CUSTOM_STAB_MODE");
+    _parameter_handles.yaw_stick_constant = param_find("YAW_STICK_CONST");
+    _parameter_handles.pitch_stick_constant = param_find("PITCH_STICK_CONST");
+    _parameter_handles.roll_stick_constant = param_find("ROLL_STICK_CONST");
 
 	/* fetch initial parameter values */
 	parameters_update();
@@ -280,6 +283,9 @@ FixedwingAttitudeControl::parameters_update()
     // Edited by Alberto Ruiz Garcia: initial value for _yaw_damper_enabled
     param_get(_parameter_handles.yaw_damper_enabled, &_parameters.yaw_damper_enabled);
     param_get(_parameter_handles.custom_stabilized_mode, &_parameters.custom_stabilized_mode);
+    param_get(_parameter_handles.yaw_stick_constant, &_parameters.yaw_stick_constant);
+    param_get(_parameter_handles.pitch_stick_constant, &_parameters.pitch_stick_constant);
+    param_get(_parameter_handles.roll_stick_constant, &_parameters.roll_stick_constant);
 
 	return PX4_OK;
 }
@@ -655,26 +661,34 @@ void FixedwingAttitudeControl::run()
             // keep current turn radius with no sideslip, but the
             // output of the controller is only used for the yaw
             // axis
-                _att_sp.timestamp = hrt_absolute_time();
-                _att_sp.roll_body = euler_angles.phi();
-                _att_sp.pitch_body = euler_angles.theta();
+
+                // Redefine the attitude setpoint
                 _att_sp.yaw_body = 0.0f;
                 _att_sp.thrust_body[0] = _manual.z;
 
-                _yaw_damper_gain = 0.5 * (1 + cos(_manual.r * float(M_PI)));
+                // Calculate yaw damper gain
+                _yaw_damper_gain = _parameters.yaw_stick_constant * (1.0f + cosf(_manual.r * float(M_PI)));
                 _yaw_damper_gain = math::constrain(_yaw_damper_gain,0.0f,1.0f);
-                if(_custom_stabilized_mode){
-                    _custom_roll_gain = 0.5 * (1 + cos(_manual.y * float(M_PI)));
-                    _custom_pitch_gain = 0.5 * (1 + cos(_manual.x * float(M_PI)));
-                } else {
+
+                if(_custom_stabilized_mode){ // Calculate the gains from the transmitter inputs
+                    _custom_pitch_gain = _parameters.pitch_stick_constant * (1.0f + cosf(_manual.x * float(M_PI)));
+                    _custom_roll_gain = _parameters.roll_stick_constant * (1.0f + cosf(_manual.y * float(M_PI)));
+                    // Constrain values
+                    _custom_pitch_gain = math::constrain(_custom_pitch_gain, 0.0f, 1.0f);
+                    _custom_roll_gain = math::constrain(_custom_roll_gain, 0.0f, 1.0f);
+
+                } else { // Only yaw damper, angle setpoints from current angle measurements
                     _custom_pitch_gain = 1.0f;
                     _custom_roll_gain = 1.0f;
+                    _att_sp.roll_body = euler_angles.phi();
+                    _att_sp.pitch_body = euler_angles.theta();
                 }
+
             } else{
-                    _yaw_damper_gain = 1.0f;
-                    _custom_pitch_gain = 1.0f;
-                    _custom_roll_gain = 1.0f;
-            }
+                        _yaw_damper_gain = 1.0f;
+                        _custom_pitch_gain = 1.0f;
+                        _custom_roll_gain = 1.0f;
+             }
 
             // the position controller will not emit attitude setpoints in some modes
 			// we need to make sure that this flag is reset
@@ -836,8 +850,8 @@ void FixedwingAttitudeControl::run()
                                 _actuators.control[actuator_controls_s::INDEX_PITCH] *= _custom_pitch_gain;
                                 _actuators.control[actuator_controls_s::INDEX_ROLL] *= _custom_roll_gain;
                                 // Add manual inputs from the pilot
-                                _actuators.control[actuator_controls_s::INDEX_PITCH] += -_manual.x + trim_pitch * (1 - _custom_pitch_gain);
-                                _actuators.control[actuator_controls_s::INDEX_ROLL] += _manual.y + trim_roll * (1 - _custom_roll_gain);
+                                _actuators.control[actuator_controls_s::INDEX_PITCH] += (-_manual.x + trim_pitch) * (1 - _custom_pitch_gain);
+                                _actuators.control[actuator_controls_s::INDEX_ROLL] += (_manual.y + trim_roll) * (1 - _custom_roll_gain);
                             }
                         }
 
