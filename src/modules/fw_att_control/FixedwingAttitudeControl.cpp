@@ -667,12 +667,12 @@ void FixedwingAttitudeControl::run()
                 _att_sp.thrust_body[0] = _manual.z;
 
                 // Calculate yaw damper gain
-                _yaw_damper_gain = _parameters.yaw_stick_constant * (1.0f + cosf(_manual.r * float(M_PI)));
+                _yaw_damper_gain = (double)_parameters.yaw_stick_constant * (1.0 + cos(_manual.r * float(M_PI)));
                 _yaw_damper_gain = math::constrain(_yaw_damper_gain,0.0f,1.0f);
 
                 if(_custom_stabilized_mode){ // Calculate the gains from the transmitter inputs
-                    _custom_pitch_gain = _parameters.pitch_stick_constant * (1.0f + cosf(_manual.x * float(M_PI)));
-                    _custom_roll_gain = _parameters.roll_stick_constant * (1.0f + cosf(_manual.y * float(M_PI)));
+                    _custom_pitch_gain = (double)_parameters.pitch_stick_constant * (1.0 + cos(_manual.x * float(M_PI)));
+                    _custom_roll_gain = (double)_parameters.roll_stick_constant * (1.0 + cos(_manual.y * float(M_PI)));
                     // Constrain values
                     _custom_pitch_gain = math::constrain(_custom_pitch_gain, 0.0f, 1.0f);
                     _custom_roll_gain = math::constrain(_custom_roll_gain, 0.0f, 1.0f);
