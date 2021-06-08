@@ -136,12 +136,12 @@ then
 	param set RC_MAP_YAW 4
 
 	# MAP AUXILIARY CHANNELS
-    param set RC_MAP_FLAPS 7
+    param set RC_MAP_FLAPS 9
 	param set RC_MAP_FLTMODE 5 	# Flight mode switch
 	param set RC_MAP_ARM_SW 6  	# Arming switch
 	#param set RC_MAP_AUX1 7   	# Arduino PWM
-	param set RC_MAP_PARAM1 9	# Yaw controller rate gain
-    param set RC_MAP_PARAM2 10  # Yaw controller feedforward gain
+	param set RC_MAP_PARAM1 7	# Yaw controller rate gain
+    param set RC_MAP_PARAM2 8  # Yaw controller feedforward gain
 
     # DISABLE UNUSED CHANNELS
     param set RC_MAP_MODE_SW 0	# do not use 
