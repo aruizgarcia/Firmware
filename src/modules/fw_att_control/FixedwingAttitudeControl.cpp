@@ -656,7 +656,7 @@ void FixedwingAttitudeControl::run()
 			vehicle_land_detected_poll();
 
             // Edited by Alberto Ruiz Garcia: yaw damper implementation
-            if(_yaw_damper_enabled) {
+            if(_yaw_damper_enabled > 0) {
             // Measured pitch and roll are fed to the controller to
             // keep current turn radius with no sideslip, but the
             // output of the controller is only used for the yaw
@@ -670,7 +670,7 @@ void FixedwingAttitudeControl::run()
                 _yaw_damper_gain = (double)_parameters.yaw_stick_constant * (1.0 + cos(_manual.r * float(M_PI)));
                 _yaw_damper_gain = math::constrain(_yaw_damper_gain,0.0f,1.0f);
 
-                if(_custom_stabilized_mode){ // Calculate the gains from the transmitter inputs
+                if(_custom_stabilized_mode > 0){ // Calculate the gains from the transmitter inputs
                     _custom_pitch_gain = (double)_parameters.pitch_stick_constant * (1.0 + cos(_manual.x * float(M_PI)));
                     _custom_roll_gain = (double)_parameters.roll_stick_constant * (1.0 + cos(_manual.y * float(M_PI)));
                     // Constrain values
@@ -678,8 +678,8 @@ void FixedwingAttitudeControl::run()
                     _custom_roll_gain = math::constrain(_custom_roll_gain, 0.0f, 1.0f);
 
                 } else { // Only yaw damper, angle setpoints from current angle measurements
-                    _custom_pitch_gain = 1.0f;
-                    _custom_roll_gain = 1.0f;
+                    _custom_pitch_gain = 0.0f;
+                    _custom_roll_gain = 0.0f;
                     _att_sp.roll_body = euler_angles.phi();
                     _att_sp.pitch_body = euler_angles.theta();
                 }
@@ -839,26 +839,27 @@ void FixedwingAttitudeControl::run()
 						float pitch_u = _pitch_ctrl.control_euler_rate(control_input);
 						_actuators.control[actuator_controls_s::INDEX_PITCH] = (PX4_ISFINITE(pitch_u)) ? pitch_u + trim_pitch : trim_pitch;
 
+						if (!PX4_ISFINITE(pitch_u)) {
+							_pitch_ctrl.reset_integrator();
+							perf_count(_nonfinite_output_perf);
+						}
+
                         // Edited by Alberto Ruiz Garcia
                         // If _yaw_damper_enabled, run the custom controller instead of the default stabilized mode
-                        if (_yaw_damper_enabled) {
-                            if (!_custom_stabilized_mode) {// If _custom_stabilized_mode is false, the controller will act just as a yaw damper
-                                _actuators.control[actuator_controls_s::INDEX_PITCH] = -_manual.x + trim_pitch;
-                                _actuators.control[actuator_controls_s::INDEX_ROLL] = _manual.y * + trim_roll;
-                            } else { // custom stabilized mode enabled (increased pilot authority)
+                        if (_yaw_damper_enabled > 0) {
+                            if (_custom_stabilized_mode > 0) {// custom stabilized mode enabled (increased pilot authority)
                                 // Scale controls according to gains
                                 _actuators.control[actuator_controls_s::INDEX_PITCH] *= _custom_pitch_gain;
                                 _actuators.control[actuator_controls_s::INDEX_ROLL] *= _custom_roll_gain;
                                 // Add manual inputs from the pilot
                                 _actuators.control[actuator_controls_s::INDEX_PITCH] += (-_manual.x + trim_pitch) * (1 - _custom_pitch_gain);
                                 _actuators.control[actuator_controls_s::INDEX_ROLL] += (_manual.y + trim_roll) * (1 - _custom_roll_gain);
+                            } else { // If custom stab mode is disabled, the controller is only a yaw damper and
+                                   // pitch and roll manual controls are passed through
+                                 _actuators.control[actuator_controls_s::INDEX_PITCH] = -_manual.x + trim_pitch;
+                                 _actuators.control[actuator_controls_s::INDEX_ROLL] = _manual.y + trim_roll;
                             }
-                        }
-
-						if (!PX4_ISFINITE(pitch_u)) {
-							_pitch_ctrl.reset_integrator();
-							perf_count(_nonfinite_output_perf);
-						}
+                          }
 
 						float yaw_u = 0.0f;
 

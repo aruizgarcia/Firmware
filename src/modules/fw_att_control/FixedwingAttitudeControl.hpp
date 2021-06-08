@@ -146,9 +146,9 @@ private:
 	bool _is_tailsitter{false};
 
     // Edited by Alberto Ruiz Garcia (yaw damper)
-    int32_t _yaw_damper_enabled{false}; // Flag to enable/disable the yaw damper
+    int32_t _yaw_damper_enabled{0}; // Flag to enable/disable the yaw damper
     float _yaw_damper_gain{1.0f};   // Additional gain to increase the pilot authority
-    int32_t _custom_stabilized_mode{false}; // Flag to enable/disable the custom stab. mode
+    int32_t _custom_stabilized_mode{0}; // Flag to enable/disable the custom stab. mode
     float _custom_pitch_gain{1.0f}; // Pitch gain for the custom stabilized mode (more pilot authority)
     float _custom_roll_gain{1.0f}; // Roll gain for the custom stabilized mode (more pilot authority)
 
