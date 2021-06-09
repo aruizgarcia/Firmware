@@ -817,7 +817,7 @@ PARAM_DEFINE_FLOAT(YAW_STICK_CONST, 0.3f);
  * @min 0
  * @max 0.5
  */
-PARAM_DEFINE_FLOAT(PITCH_STCK_CONST, 0.3f);
+PARAM_DEFINE_FLOAT(PITCH_STCK_CONST, 0.0f);
 
 
 /**
@@ -828,7 +828,18 @@ PARAM_DEFINE_FLOAT(PITCH_STCK_CONST, 0.3f);
  * @min 0
  * @max 0.5
  */
-PARAM_DEFINE_FLOAT(ROLL_STICK_CONST, 0.3f);
+PARAM_DEFINE_FLOAT(ROLL_STICK_CONST, 0.5f);
+
+
+/**
+ * Stick position to shut the controller off for increased pilot authority
+ * Only works when YAW_DAMP_FLAG and CUSTOM_STAB_MODE is equal to 1
+ *
+ * @group FW Attitude Control
+ * @min 0
+ * @max 0.5
+ */
+PARAM_DEFINE_FLOAT(STICK_CTRL_OFF, 0.1f);
 
 
 

@@ -151,6 +151,7 @@ private:
     int32_t _custom_stabilized_mode{0}; // Flag to enable/disable the custom stab. mode
     float _custom_pitch_gain{1.0f}; // Pitch gain for the custom stabilized mode (more pilot authority)
     float _custom_roll_gain{1.0f}; // Roll gain for the custom stabilized mode (more pilot authority)
+    float _stick_controller_off{0.1f}; // Stick position at which the custom stabilized mode is disabled to increase authority
 
 	struct {
 		float p_tc;

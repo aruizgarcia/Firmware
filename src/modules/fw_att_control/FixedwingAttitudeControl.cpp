@@ -579,11 +579,12 @@ void FixedwingAttitudeControl::run()
 		if (fds[1].revents & POLLIN){ // Get value from maneuver control flag
 			// Get only required params for a quicker response and to let fw_att_control 
 			// handle its own parameters (don't clear the update flag)
+            // This is probably not needed if the parameters are updated
+            // properly, check after flight test!
 			param_get(param_find("MAN_CTRL_FLAG"),&maneuver_control_enabled);
-			//PX4_INFO("Maneuver flag updated!");
 		    param_get(param_find("YAW_DAMP_FLAG"), &_yaw_damper_enabled);
-            //PX4_INFO("Yaw damper flag updated!");
             param_get(param_find("CUSTOM_STAB_MODE"), &_custom_stabilized_mode);
+            param_get(param_find("STICK_CTRL_OFF"), &_stick_controller_off);
         }
 
 		/* only run controller if attitude changed */
@@ -671,8 +672,14 @@ void FixedwingAttitudeControl::run()
                 _yaw_damper_gain = math::constrain(_yaw_damper_gain,0.0f,1.0f);
 
                 if(_custom_stabilized_mode > 0){ // Calculate the gains from the transmitter inputs
-                    _custom_pitch_gain = (double)_parameters.pitch_stick_constant * (1.0 + cos(_manual.x * float(M_PI)));
-                    _custom_roll_gain = (double)_parameters.roll_stick_constant * (1.0 + cos(_manual.y * float(M_PI)));
+                    bool pitch_controller_off = ((fabsf(_manual.x) - _stick_controller_off) < 0);
+                    _custom_pitch_gain = (pitch_controller_off) ? (double)_parameters.pitch_stick_constant *
+                        (1.0 + cos(_manual.x/_stick_controller_off * float(M_PI))) : 0.0;
+
+                    bool roll_controller_off = ((fabsf(_manual.y) - _stick_controller_off) < 0);
+                    _custom_roll_gain = (roll_controller_off) ? (double)_parameters.roll_stick_constant *
+                        (1.0 + cos(_manual.y/_stick_controller_off * float(M_PI))) : 0.0;
+
                     // Constrain values
                     _custom_pitch_gain = math::constrain(_custom_pitch_gain, 0.0f, 1.0f);
                     _custom_roll_gain = math::constrain(_custom_roll_gain, 0.0f, 1.0f);
@@ -852,8 +859,8 @@ void FixedwingAttitudeControl::run()
                                 _actuators.control[actuator_controls_s::INDEX_PITCH] *= _custom_pitch_gain;
                                 _actuators.control[actuator_controls_s::INDEX_ROLL] *= _custom_roll_gain;
                                 // Add manual inputs from the pilot
-                                _actuators.control[actuator_controls_s::INDEX_PITCH] += (-_manual.x + trim_pitch) * (1 - _custom_pitch_gain);
-                                _actuators.control[actuator_controls_s::INDEX_ROLL] += (_manual.y + trim_roll) * (1 - _custom_roll_gain);
+                                _actuators.control[actuator_controls_s::INDEX_PITCH] += -_manual.x + trim_pitch * (1 - _custom_pitch_gain);
+                                _actuators.control[actuator_controls_s::INDEX_ROLL] += _manual.y + trim_roll * (1 - _custom_roll_gain);
                             } else { // If custom stab mode is disabled, the controller is only a yaw damper and
                                    // pitch and roll manual controls are passed through
                                  _actuators.control[actuator_controls_s::INDEX_PITCH] = -_manual.x + trim_pitch;
