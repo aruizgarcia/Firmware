@@ -687,7 +687,7 @@ void FixedwingAttitudeControl::run()
                     _custom_pitch_gain = math::constrain(_custom_pitch_gain, 0.0f, 1.0f);
                     _custom_roll_gain = math::constrain(_custom_roll_gain, 0.0f, 1.0f);
 
-                    _att_sp.roll_body = 0;
+                    _att_sp.roll_body = 0.0f;
 
                 } else { // Only yaw damper, angle setpoints from current angle measurements
                     _custom_pitch_gain = 0.0f;
