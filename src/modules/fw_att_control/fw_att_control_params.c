@@ -761,10 +761,10 @@ PARAM_DEFINE_FLOAT(FW_DTRIM_P_FLPS, 0.0f);
  * @min 0
  * @max 1
  */
-PARAM_DEFINE_INT32(YAW_DAMP_FLAG, 0);
+PARAM_DEFINE_INT32(YAW_DAMP_MODE, 0);
 
 /**
- * Flag to enable the custom stabilized mode (needs YAW_DAMP_FLAG = 1 and
+ * Flag to enable the custom stabilized mode (needs YAW_DAMP_MODE = 1 and
  * stabilized mode enabled)
  *
  * It scales the pitch and roll controller output with a gain depending on the
@@ -797,27 +797,15 @@ PARAM_DEFINE_FLOAT(FW_YR_PMAX, 0.3);
  */
 PARAM_DEFINE_FLOAT(FW_YR_FFMAX, 0.5);
 
-
 /**
- * Value of the controller gain at 50% deflection for the custom stabilized
- * mode and yaw damper
+ * Maximum value for the RC tuning of the roll controller proportional gain
  *
+ * It is only used in rc_update.cpp to tune the gain using the transmitter
  * @group FW Attitude Control
  * @min 0
- * @max 0.5
+ * @max 1
  */
-PARAM_DEFINE_FLOAT(YAW_STICK_CONST, 0.3f);
-
-
-/**
- * Value of the controller gain at 50% deflection for the custom stabilized
- * mode and yaw damper
- *
- * @group FW Attitude Control
- * @min 0
- * @max 0.5
- */
-PARAM_DEFINE_FLOAT(PITCH_STCK_CONST, 0.0f);
+PARAM_DEFINE_FLOAT(FW_RR_PMAX, 0.5);
 
 
 /**
@@ -828,18 +816,29 @@ PARAM_DEFINE_FLOAT(PITCH_STCK_CONST, 0.0f);
  * @min 0
  * @max 0.5
  */
-PARAM_DEFINE_FLOAT(ROLL_STICK_CONST, 0.5f);
+PARAM_DEFINE_FLOAT(YAW_STCK_CONST, 0.3f);
 
 
 /**
- * Stick position to shut the controller off for increased pilot authority
- * Only works when YAW_DAMP_FLAG and CUSTOM_STAB_MODE is equal to 1
+ * Value of the controller gain at 50% deflection for the custom stabilized
+ * mode and yaw damper
  *
  * @group FW Attitude Control
  * @min 0
  * @max 0.5
  */
-PARAM_DEFINE_FLOAT(STICK_CTRL_OFF, 0.1f);
+PARAM_DEFINE_FLOAT(PITCH_STCK_CONST, 0.3f);
+
+
+/**
+ * Value of the controller gain at 50% deflection for the custom stabilized
+ * mode and yaw damper
+ *
+ * @group FW Attitude Control
+ * @min 0
+ * @max 0.5
+ */
+PARAM_DEFINE_FLOAT(ROLL_STCK_CONST, 0.3f);
 
 
 
