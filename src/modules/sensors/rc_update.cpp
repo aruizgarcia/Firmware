@@ -271,9 +271,11 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
 			signal_lost = true;
 
             // Edited by Alberto Ruiz Garcia
-            // Disable yaw damper when signal is lost
-            int32_t disable_yaw_damper = 0;
-            param_set(param_find("YAW_DAMP_FLAG"), &disable_yaw_damper);
+            // Disable yaw damper and custom stabilized mode if signal is lost
+            // so that it goes to default return mode
+            int32_t disable_custom_controllers = 0;
+            param_set(param_find("YAW_DAMP_MODE"), &disable_custom_controllers);
+            param_set(param_find("CUSTOM_STAB_MODE"), &disable_custom_controllers);
 
 		} else {
 			/* signal looks good */
@@ -526,15 +528,15 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
 			/* Update parameters from RC Channels (tuning with RC) if activated */
 			if (hrt_elapsed_time(&_last_rc_to_param_map_time) > 1e6) {
 				// Edited by Alberto Ruiz Garcia: map to params, sinusoidal gain
-                float max_rate_gain = 0.0f;
-                float max_ff_gain = 0.0f;
-                param_get(param_find("FW_YR_PMAX"), &max_rate_gain);
-                param_get(param_find("FW_YR_FFMAX"), &max_ff_gain);
+                float max_yaw_gain = 0.0f;
+                float max_roll_gain = 0.0f;
+                param_get(param_find("FW_YR_PMAX"), &max_yaw_gain);
+                param_get(param_find("FW_RR_PMAX"), &max_roll_gain);
                 float param_1 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_PARAM_1, 0.0, 1.0);
                 float param_2 = get_rc_value(rc_channels_s::RC_CHANNELS_FUNCTION_PARAM_2, 0.0, 1.0);
                 // Compute gains
-                float yaw_rate_gain_new = (double)max_rate_gain * sin(M_PI_2 * (double)param_1);
-                float yaw_feedforward_gain_new =(double)max_ff_gain * sin(M_PI_2 * (double)param_2);
+                float yaw_rate_gain_new = (double)max_yaw_gain * sin(M_PI_2 * (double)param_1);
+                float roll_proportional_gain_new =(double)max_roll_gain * sin(M_PI_2 * (double)param_2);
 
                 // Set parameters
                 if (yaw_rate_gain_new > _yaw_rate_gain + _yaw_rate_gain_sensitivity ||
@@ -543,10 +545,10 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
                     param_set(param_find("FW_YR_P"), &_yaw_rate_gain);
                 }
 
-                if (yaw_feedforward_gain_new > _yaw_feedforward_gain + _yaw_feedforward_gain_sensitivity ||
-                        yaw_feedforward_gain_new < _yaw_feedforward_gain - _yaw_feedforward_gain_sensitivity){
-                   _yaw_feedforward_gain = yaw_feedforward_gain_new;
-                   param_set(param_find("FW_YR_FF"), &_yaw_feedforward_gain);
+                if (roll_proportional_gain_new > _roll_proportional_gain + _roll_gain_sensitivity ||
+                        roll_proportional_gain_new < _roll_proportional_gain - _roll_gain_sensitivity){
+                   _roll_proportional_gain = roll_proportional_gain_new;
+                   param_set(param_find("FW_RR_P"), &_roll_proportional_gain);
                 }
 
                 set_params_from_rc(parameter_handles);

@@ -136,10 +136,10 @@ private:
 
     // Edited by Alberto Ruiz Garcia
     // Yaw controller gains from pilot inputs to increase pilot authority
-    float _yaw_rate_gain{0.0f};                     // Yaw rate gain
-    float _yaw_feedforward_gain{0.0f};              // Yaw feedforward gain from roll angle
-    float _yaw_rate_gain_sensitivity{0.005f};             // Sensitivity to tune gain
-    float _yaw_feedforward_gain_sensitivity{0.1};      // Sensitivity to tune gain
+    float _yaw_rate_gain{0.0f};                // Yaw rate gain
+    float _roll_proportional_gain{0.0f};       // Roll propoprtional gain
+    float _yaw_rate_gain_sensitivity{0.005f};  // Sensitivity to tune gain
+    float _roll_gain_sensitivity{0.005f};      // Sensitivity to tune gain
 
 };
 
