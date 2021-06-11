@@ -1,10 +1,3 @@
-/****************************************************************************
- *
- *
- *
- *
- ****************************************************************************/
-
 /**
  * @file ManeuverControl.cpp
  * Adaptation of the <gnd_att_control> module to perform automatic programmed
@@ -197,8 +190,9 @@ ManeuverControl::compute_maneuver (uint64_t maneuver_time){
         }
 
         if (maneuver_time > _parameters.duration * 1000U){
-                printf("\t\t>>> Done, PC safety back on\n");
-                terminate_maneuver(); 
+                //printf("\t\t>>> Done, PC safety back on\n");
+                printf("Done");
+                terminate_maneuver();
         }
 
         return actuator_command;
@@ -242,7 +236,7 @@ ManeuverControl::compute_doublet(uint64_t maneuver_time, uint64_t maneuver_durat
   	}
 
 	if (current_phase != prev_phase) {
-			printf("\t\tPhase #%d, time = %llu us, command = %1.1f, throttle = %1.1f\n", current_phase, maneuver_time,
+			PX4_DEBUG("\t\tPhase #%d, time = %llu us, command = %1.1f, throttle = %1.1f\n", current_phase, maneuver_time,
 				       	(double)servo_command, (double)_actuator_commands.throttle);
 			prev_phase  = current_phase;
 	}
@@ -294,7 +288,7 @@ ManeuverControl::compute_3211(uint64_t maneuver_time, uint64_t maneuver_duration
   	}
 
 	if (current_phase != prev_phase) {
-			printf("\t\tPhase #%d, time = %llu us, command = %1.1f, throttle = %1.1f\n", current_phase, maneuver_time,
+		    PX4_DEBUG("\t\tPhase #%d, time = %llu us, command = %1.1f, throttle = %1.1f\n", current_phase, maneuver_time,
 				       	(double)servo_command, (double)_actuator_commands.throttle);
 			prev_phase  = current_phase;
 	}
@@ -329,7 +323,7 @@ ManeuverControl::terminate_maneuver()
     set_safety_pc(PC_SAFETY_ON);
     int32_t option = ENABLE_FW_CONTROLLER;
     param_set(_parameter_handles.ctrl_flag, &option);
-    PX4_INFO("Maneuver finished/aborted");
+    //PX4_INFO("Maneuver finished/aborted");
     return;
 }
 
@@ -355,10 +349,10 @@ ManeuverControl::start()
                                            nullptr);											  	// argv
 
         if (_control_task < 0) {
-                PX4_ERR("task start failed");
+                PX4_ERR("Failed");
                 return -errno;
         } else {
-			PX4_INFO("Task started successfully");
+			PX4_INFO("Success");
 		}
 
         return PX4_OK;
@@ -437,7 +431,7 @@ ManeuverControl::task_main()
 
 			// Check for maneuver start
 	        if (_parameters.start_maneuver > 0) {
-	            printf("\t\t>>> STARTING MANEUVER\n");
+	            //printf("\t\t>>> STARTING MANEUVER\n");
                 if(orb_copy(ORB_ID(manual_control_setpoint), _manual_sub, &_manual_sp_trim) == PX4_OK) {
                 // Get last manual setpoint to get centering values
                     _start_time = hrt_absolute_time();
@@ -446,7 +440,7 @@ ManeuverControl::task_main()
                 } else {
                     terminate_maneuver();
                 	//_run_controller = true;
-                	//_start_time = hrt_absolute_time(); 
+                	//_start_time = hrt_absolute_time();
                     set_start_flag(START_MANEUVER_OFF);
                     PX4_WARN("Manual setpoint missing");
 	            }
@@ -464,7 +458,7 @@ ManeuverControl::task_main()
 
 				if (_pilot_action) { // Pilot is fighting against the maneuver
 					terminate_maneuver();
-					PX4_INFO("Pilot abort");
+					PX4_INFO("Aborted");
 				}
 
 			}
@@ -571,7 +565,7 @@ int maneuver_control_main(int argc, char *argv[])
 	int man_id_input = 0;
 
     if (argc < 2) {
-	    usage(nullptr);
+	    //usage(nullptr);
 	    return 1;
     }
 
@@ -599,70 +593,70 @@ int maneuver_control_main(int argc, char *argv[])
 
 		case 'a':
 			if (px4_get_parameter_value(myoptarg, commanded_amplitude) != 0) {
-				PX4_ERR("CLI argument parsing for maneuver amplitude failed");
+				PX4_ERR("Amp: ERR");
 				return 1;
 			} else if(commanded_amplitude > 0 && commanded_amplitude < 100) {
-				PX4_INFO("Maneuver amplitude: %d%%", commanded_amplitude);
+				PX4_INFO("Amp: %d%%", commanded_amplitude);
 				amplitude_update = true;
 			} else {
-                PX4_ERR("Amplitude: out of bounds");
+                PX4_ERR("Amp: OUT_BOUNDS");
             }
             break;
 
 		case 'c':
 			if (strcmp(myoptarg,"elevator") == 0) {
-				PX4_INFO("Control surface:    elevator");
+				PX4_INFO("CS: ELEV");
 				control_surface = 1;
 				surface_update = true;
 			} else if (strcmp(myoptarg,"ailerons") == 0) {
-				PX4_INFO("Control surface:    ailerons");
+				PX4_INFO("CS: AIL");
 				control_surface = 2;
 				surface_update = true;
 			} else if (strcmp(myoptarg,"rudders") == 0) {
-				PX4_INFO("Control surface:    rudders");
+				PX4_INFO("CS: RUD");
 				control_surface = 3;
 				surface_update = true;
 			}else {
 				control_surface = 0;
-                PX4_ERR("Control surface: not recognized");
+				PX4_INFO("CS: error");
 			}
 			break;
 
 		case 't':
 			if (px4_get_parameter_value(myoptarg, maneuver_seconds) != 0) {
-				PX4_ERR("CLI argument parsing for maneuver duration failed");
-				return 1;
-			} else if (maneuver_seconds > 0 && maneuver_seconds < 30){
-				PX4_INFO("Maneuver duration:  %d seconds", maneuver_seconds);
+				PX4_ERR("Time: ERR");
+                return 1;
+			} else if (maneuver_seconds > 0 && maneuver_seconds < 10){
+				PX4_INFO("Time: %ds", maneuver_seconds);
 				duration_update = true;
 			} else {
-                PX4_ERR("Maneuver duration: out of bounds");
+                PX4_ERR("Time: OUT_BOUNDS");
             }
             break;
 
 		case 'm':
 			if(strcmp(myoptarg, "doublet") == 0) {
 				man_id_input = MANEUVER_ID_DOUBLET;
-				PX4_INFO("Maneuver type:    doublet");
+				PX4_INFO("Man: doublet");
 				maneuver_update = true;
 			} else if (strcmp(myoptarg, "3211") == 0) {
 				man_id_input = MANEUVER_ID_3211;
-				PX4_INFO("Maneuver type:    3211");
+				PX4_INFO("Man: 3211");
 				maneuver_update = true;
 			} else {
-				PX4_WARN("Maneuver no recognized!");
+				PX4_WARN("Man: ERR");
 			}
 			maneuver_update = true;
 			break;
 
 		default:
-			usage(nullptr);
+			//usage(nullptr);
 			return 1;
 		}
 	}
 
  	if (myoptind >= argc) {
-		usage(nullptr);
+		//usage(nullptr);
 		return 1;
 	}
 
@@ -671,7 +665,7 @@ int maneuver_control_main(int argc, char *argv[])
     if (!strcmp(command, "start")) {
 
         if (maneuver_controller::control_ptr != nullptr) {
-            PX4_WARN("already running");
+            PX4_WARN("running");
             return 1;
         }
 
@@ -757,45 +751,43 @@ int maneuver_control_main(int argc, char *argv[])
             return 1;
 	    }
 
-		PX4_INFO(">>> CURRENT SETTINGS <<<");
-
 		int32_t maneuver_id 		= maneuver_controller::control_ptr->get_maneuver_id();
-		int32_t safety_switch_pc 	= maneuver_controller::control_ptr->get_safety_pc();
-		int32_t safety_switch_tx 	= maneuver_controller::control_ptr->get_safety_tx();
+		//int32_t safety_switch_pc 	= maneuver_controller::control_ptr->get_safety_pc();
+		//int32_t safety_switch_tx 	= maneuver_controller::control_ptr->get_safety_tx();
 		int32_t duration 			= maneuver_controller::control_ptr->get_duration();
 		float amplitude 			= maneuver_controller::control_ptr->get_amplitude();
-		float center_pos 			= maneuver_controller::control_ptr->get_center_pos();
+		//float center_pos 			= maneuver_controller::control_ptr->get_center_pos();
 		int32_t surface 			= maneuver_controller::control_ptr->get_control_surface();
 
     	switch(maneuver_id) {
     		case(1):
-    			PX4_INFO("Current maneuver = doublet");
+    			PX4_INFO("Man = doublet");
     			break;
     		case(2):
-    			PX4_INFO("Current maneuver = 3211");
+    			PX4_INFO("Man = 3211");
     			break;
     		default:
-    			PX4_WARN("Current maneuver = NOT DEFINED");
+    			PX4_WARN("Man = -");
     			break;
     	}
 
-    	PX4_INFO("Safety switch PC = %d",  safety_switch_pc);
-    	PX4_INFO("Safety switch TX = %d", safety_switch_tx);
-    	PX4_INFO("Duration         = %d s", duration/1000);
-    	PX4_INFO("Amplitude        = %f%%", (double)amplitude * 100.0) ;
-    	PX4_INFO("Center position  = %f%%", (double)center_pos * 100.0);
+    	//PX4_INFO("Safety switch PC = %d",  safety_switch_pc);
+    	//PX4_INFO("Safety switch TX = %d", safety_switch_tx);
+    	PX4_INFO("Time = %d s", duration/1000);
+    	PX4_INFO("Amp  = %f%%", (double)amplitude * 100.0) ;
+    	//PX4_INFO("Center     = %f%%", (double)center_pos * 100.0);
     	switch(surface){
     		case 1:
-    			PX4_INFO("Control surface  = ELEVATOR");
+    			PX4_INFO("CS: ELEV");
     			break;
     		case 2:
-    			PX4_INFO("Control surface  = AILERONS");
+    			PX4_INFO("CS: AIL");
     			break;
     		case 3:
-    			PX4_INFO("Control surface  = RUDDERS");
+    			PX4_INFO("CS: RUD");
     			break;
     		default:
-    			PX4_WARN("Control surface  = NOT DEFINED");
+    			PX4_INFO("CS: -");
     			break;
     		}
 
@@ -804,6 +796,10 @@ int maneuver_control_main(int argc, char *argv[])
             PX4_WARN("not running");
             return 1;
 	    }
+
+        // Disable safety (not really needed)
+        maneuver_controller::control_ptr->set_safety_pc(PC_SAFETY_OFF);
+        maneuver_controller::control_ptr->set_safety_tx(TX_SAFETY_OFF);
         maneuver_controller::control_ptr->set_fw_controller_status(DISABLE_FW_CONTROLLER);
         maneuver_controller::control_ptr->set_start_maneuver(START_MANEUVER_ON);
 
@@ -825,18 +821,13 @@ int maneuver_control_main(int argc, char *argv[])
     	PX4_INFO("Safety -> OFF");
     	maneuver_controller::control_ptr->set_safety_pc(PC_SAFETY_OFF);
 
-        // We do not need the TX safety, disable every time we disable pc
-        // safety but leave it for the future
-        PX4_INFO("TX Safety -> OFF");
-        maneuver_controller::control_ptr->set_safety_tx(TX_SAFETY_OFF);
-
     } else if(!strcmp(command,"pilot_safety_on")){
            if (maneuver_controller::control_ptr == nullptr) {
 	        PX4_WARN("not running");
         	return 1;
             }
 
-	PX4_INFO("TX safety -> ON");
+	    PX4_INFO("TX safety -> ON");
     	maneuver_controller::control_ptr->set_safety_tx(TX_SAFETY_ON);
 
      } else if(!strcmp(command,"pilot_safety_off")){
@@ -856,6 +847,8 @@ int maneuver_control_main(int argc, char *argv[])
     	maneuver_controller::control_ptr->set_safety_pc(PC_SAFETY_ON);
    	    maneuver_controller::control_ptr->set_safety_tx(TX_SAFETY_ON);
         maneuver_controller::control_ptr->set_fw_controller_status(ENABLE_FW_CONTROLLER);
+    } else if (!strcmp(command,"usage")){
+        usage(nullptr);
     } else {
     	PX4_WARN("unrecognized command");
     	return 1;

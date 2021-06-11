@@ -82,6 +82,7 @@ private:
     // Timers
     uint64_t _start_time{0}; 					// Start time [us]
     uint64_t _time_last_run{0}; 				// Time of last run of the controller [us]
+    uint64_t _max_maneuver_duration{10}; 
 
     // uORB
 	int		_att_sp_sub{-1};					// vehicle attitude setpoint
