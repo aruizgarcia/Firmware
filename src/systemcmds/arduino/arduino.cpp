@@ -39,6 +39,7 @@
 // PWM output for each command
 #define SLOW_MODE -0.8
 #define FAST_MODE -0.3
+#define IDLE 0.0
 #define SLAVE_RESET 0.35
 #define GENERAL_RESET 0.85
 
@@ -107,6 +108,9 @@ arduino_main(int argc, char *argv[])
 			} else if (strcmp(myoptarg,"GENERAL_RESET") == 0) {
 				PX4_INFO("Command = GENERAL_RESET");
 				pwm_command = GENERAL_RESET;
+            } else if (strcmp(myoptarg, "IDLE") == 0) {
+                PX4_INFO("Command = IDLE");
+                pwm_command = IDLE; 
 			} else {
                 PX4_ERR("Command not recognized");
                 command_recvd = 0;

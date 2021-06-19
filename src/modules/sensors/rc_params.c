@@ -2286,4 +2286,14 @@ PARAM_DEFINE_FLOAT(PARK_BRAKES_LVL, 0.2f);
  */
 PARAM_DEFINE_FLOAT(PARK_BRAKES_MAX, 0.2f);
 
+/**
+ * Gear safety switch
+ *
+ *
+ * @min 0
+ * @max 1
+ * @group Radio Calibration
+ */
+PARAM_DEFINE_INT32(GEAR_SAFETY, 1);
+
 

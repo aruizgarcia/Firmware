@@ -489,8 +489,10 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
 
             // Edit: Alberto Ruiz García
             // Forbids the gear retraction if the arming switch is off
+            int gear_safety = 1;
+            param_get (param_find("GEAR_SAFETY"), &gear_safety);
             float gear_down_command = 1.0f;
-            if (manual.arm_switch == manual_control_setpoint_s::SWITCH_POS_OFF){
+            if (manual.arm_switch == manual_control_setpoint_s::SWITCH_POS_OFF && gear_safety > 0){
                 manual.aux2 = gear_down_command;
             }
 

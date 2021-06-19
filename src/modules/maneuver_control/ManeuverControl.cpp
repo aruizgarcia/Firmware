@@ -360,7 +360,6 @@ ManeuverControl::start()
         } else {
 			PX4_INFO("Task started successfully");
 		}
-
         return PX4_OK;
 }
 
