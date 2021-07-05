@@ -415,6 +415,7 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
             // Edit: Alberto Ruiz García
             // Applies some brakes when the throttle is zero to help the
             // pilot during ground operations
+        /*
             float parking_brakes_throttle_threshold = 0.0f;
             float parking_brakes_level = 0.0f;
             float parking_brakes_max = 0.0f;
@@ -429,8 +430,7 @@ RCUpdate::rc_poll(const ParameterHandles &parameter_handles)
             if ( manual.z < parking_brakes_throttle_threshold && arduino_channel != 1 && manual.aux1 < parking_brakes_level){
                 manual.aux1 = parking_brakes_level; // Brakes channel = AUX1
             }
-
-
+            */
 
             /* filter controls */
 			manual.y = math::constrain(_filter_roll.apply(manual.y), -1.f, 1.f);

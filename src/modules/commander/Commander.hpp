@@ -243,6 +243,11 @@ private:
 	Publication<home_position_s>			_home_pub{ORB_ID(home_position)};
 
 	orb_advert_t					_status_pub{nullptr};
+
+
+    // Edited by Alberto Ruiz Garcia
+    // Add cli termination to force failsafe to all pwm outputs
+    bool _cli_termination{false};
 };
 
 #endif /* COMMANDER_HPP_ */

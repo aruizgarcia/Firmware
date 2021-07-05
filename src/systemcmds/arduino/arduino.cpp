@@ -39,30 +39,29 @@
 // PWM output for each command
 #define SLOW_MODE -0.8
 #define FAST_MODE -0.3
+#define IDLE 0.0
 #define SLAVE_RESET 0.35
 #define GENERAL_RESET 0.85
 
-static void	usage(const char *reason);
+static void usage(const char *reason);
 __BEGIN_DECLS
-__EXPORT int	arduino_main(int argc, char *argv[]);
+__EXPORT int    arduino_main(int argc, char *argv[]);
 __END_DECLS
 
 
 static void
 usage(const char *reason)
 {
-	if (reason != nullptr) {
-		PX4_WARN("%s", reason);
-	}
+    if (reason != nullptr) {
+        PX4_WARN("%s", reason);
+    }
 
-	PRINT_MODULE_DESCRIPTION(
-		R"DESCR_STR(
+    PRINT_MODULE_DESCRIPTION(
+        R"DESCR_STR(
 ### Description
-
-
 )DESCR_STR");
 
-	PRINT_MODULE_USAGE_NAME("Arduino", "system command");
+    PRINT_MODULE_USAGE_NAME("Arduino", "system command");
     PRINT_MODULE_USAGE_COMMAND_DESCR("send", "Sends the command selected with -c flag");
     PRINT_MODULE_USAGE_COMMAND_DESCR("info", "Outputs the current PWM value sent");
     PRINT_MODULE_USAGE_PARAM_COMMENT("Flags:");
@@ -78,46 +77,49 @@ usage(const char *reason)
 int
 arduino_main(int argc, char *argv[])
 {
-	int ch;
-	uint8_t command_recvd = 0;
-	float pwm_command = 0.0f; // 1500 us
+    int ch;
+    uint8_t command_recvd = 0;
+    float pwm_command = 0.0f; // 1500 us
 
-	if (argc < 2) {
-		usage(nullptr);
-		return 1;
-	}
+    if (argc < 2) {
+        usage(nullptr);
+        return 1;
+    }
 
-	int myoptind = 1;
-	const char *myoptarg = nullptr;
+    int myoptind = 1;
+    const char *myoptarg = nullptr;
 
-	while ((ch = px4_getopt(argc, argv, "c:", &myoptind, &myoptarg)) != EOF) {
-		switch (ch) {
+    while ((ch = px4_getopt(argc, argv, "c:", &myoptind, &myoptarg)) != EOF) {
+        switch (ch) {
 
-		case 'c':
+        case 'c':
             command_recvd = 1;
-			if (strcmp(myoptarg,"SLOW_MODE") == 0) {
-				PX4_INFO("Command = SLOW_MODE");
-				pwm_command = SLOW_MODE;
-			} else if (strcmp(myoptarg,"FAST_MODE") == 0) {
-				PX4_INFO("Command = FAST_MODE");
-				pwm_command = FAST_MODE;
-			} else if (strcmp(myoptarg,"SLAVE_RESET") == 0) {
-				PX4_INFO("Command = SLAVE_RESET");
-				pwm_command = SLAVE_RESET;
-			} else if (strcmp(myoptarg,"GENERAL_RESET") == 0) {
-				PX4_INFO("Command = GENERAL_RESET");
-				pwm_command = GENERAL_RESET;
-			} else {
+            if (strcmp(myoptarg,"SLOW_MODE") == 0) {
+                PX4_INFO("Command = SLOW_MODE");
+                pwm_command = SLOW_MODE;
+            } else if (strcmp(myoptarg,"FAST_MODE") == 0) {
+                PX4_INFO("Command = FAST_MODE");
+                pwm_command = FAST_MODE;
+            } else if (strcmp(myoptarg,"SLAVE_RESET") == 0) {
+                PX4_INFO("Command = SLAVE_RESET");
+                pwm_command = SLAVE_RESET;
+            } else if (strcmp(myoptarg,"GENERAL_RESET") == 0) {
+                PX4_INFO("Command = GENERAL_RESET");
+                pwm_command = GENERAL_RESET;
+            } else if (strcmp(myoptarg, "IDLE") == 0) {
+                PX4_INFO("Command = IDLE");
+                pwm_command = IDLE; 
+            } else {
                 PX4_ERR("Command not recognized");
                 command_recvd = 0;
             }
-			break;
+            break;
 
-			default:
-			    usage(nullptr);
+            default:
+                usage(nullptr);
                 return 1;
-		}
-	}
+        }
+    }
 
     if(myoptind >= argc) {
         usage(nullptr);

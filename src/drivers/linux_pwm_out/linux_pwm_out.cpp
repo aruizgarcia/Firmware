@@ -48,6 +48,7 @@
 #include <uORB/topics/actuator_armed.h>
 #include <uORB/topics/rc_channels.h>
 #include <uORB/topics/parameter_update.h>
+#include <uORB/topics/uadc_trigger.h>
 
 #include <drivers/drv_hrt.h>
 #include <drivers/drv_mixer.h>
@@ -82,6 +83,9 @@ int     _armed_sub = -1;
 orb_advert_t    _outputs_pub = nullptr;
 orb_advert_t    _rc_pub = nullptr;
 
+// Edited by Alberto Ruiz Garcia
+orb_advert_t    _trigger_pub = nullptr;
+
 perf_counter_t	_perf_control_latency = nullptr;
 
 // topic structures
@@ -89,6 +93,13 @@ actuator_controls_s _controls[actuator_controls_s::NUM_ACTUATOR_CONTROL_GROUPS];
 orb_id_t 			_controls_topics[actuator_controls_s::NUM_ACTUATOR_CONTROL_GROUPS];
 actuator_outputs_s  _outputs;
 actuator_armed_s    _armed;
+
+// Edited by Alberto Ruiz Garcia
+struct trigger_output_s {
+    uint64_t timestamp;
+    float output;
+} _trigger_output;
+int32_t trigger_index{0}
 
 // polling
 uint8_t _poll_fds_num = 0;
@@ -142,10 +153,16 @@ void update_params(Mixer::Airmode &airmode)
 {
 	// multicopter air-mode
 	param_t param_handle = param_find("MC_AIRMODE");
+    param_t trigger_handle = param_find("ARDUINO_AUX_CH");
 
 	if (param_handle != PARAM_INVALID) {
 		param_get(param_handle, (int32_t *)&airmode);
 	}
+
+    if(trigger_handle != PARAM_INVALID) {
+        param_get(param_handle, &_trigger_index);
+        trigger_index --; // Subtract one (index starts at 0)
+    }
 }
 
 
@@ -401,6 +418,20 @@ void task_main(int argc, char *argv[])
 			} else {
 				_outputs_pub = orb_advertise(ORB_ID(actuator_outputs), &_outputs);
 			}
+
+            if (poll_id == 1) {
+                // Edited by Alberto Ruiz Garcia: separate message for the uadc
+                // trigger so that it can be logged at full rate without having to
+                // load all actuator outputs at full rate, decreasing cpu load
+                _trigger_output.timestamp = _outputs.timestamp;
+                _trigger_output.output    = _outputs.output[_trigger_index];
+
+                if (_trigger_pub != nullptr) {
+                    orb_publish(ORB_ID(uadc_trigger), _trigger_pub, &_trigger_output);
+                } else {
+                    _trigger_pub = orb_advertise(ORB_ID(uadc_trigger), &_trigger_output]);
+                }
+            }
 
 			// use first valid timestamp_sample for latency tracking
 			for (int i = 0; i < actuator_controls_s::NUM_ACTUATOR_CONTROL_GROUPS; i++) {

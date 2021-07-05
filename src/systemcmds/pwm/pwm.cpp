@@ -83,8 +83,7 @@ usage(const char *reason)
 		R"DESCR_STR(
 ### Description
 This command is used to configure PWM outputs for servo and ESC control.
-
-The default device `/dev/pwm_output0` are the Main channels, AUX channels are on `/dev/pwm_output1` (`-d` parameter).
+-d` parameter).
 
 It is used in the startup script to make sure the PWM parameters (`PWM_*`) are applied (or the ones provided
 by the airframe config if specified). `pwm info` shows the current settings (the trim value is an offset
@@ -185,7 +184,7 @@ pwm_main(int argc, char *argv[])
 	int myoptind = 1;
 	const char *myoptarg = nullptr;
 
-	while ((ch = px4_getopt(argc, argv, "d:vec:g:m:ap:r:", &myoptind, &myoptarg)) != EOF) {
+	while ((ch = px4_getopt(argc, argv, "d:vec:g:m:ap:r:x:", &myoptind, &myoptarg)) != EOF) {
 		switch (ch) {
 
 		case 'd':
@@ -197,6 +196,11 @@ pwm_main(int argc, char *argv[])
 
 			dev = myoptarg;
 			break;
+        // Edited by Alberto Ruiz Garcia
+        // Quick way to get to the aux pwm outputs
+        case 'x':
+            dev = "/dev/pwm_output1";
+            break;
 
 		case 'v':
 			print_verbose = true;
@@ -997,7 +1001,7 @@ err_out_no_test:
 			}
 
 			if (ret != OK) {
-				PX4_ERR("FAILED setting forcefail %s", argv[2]);
+				PX4_ERR("FAILED se5tting forcefail %s", argv[2]);
 			}
 		}
 
